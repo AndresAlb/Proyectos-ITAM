@@ -1,0 +1,354 @@
+\documentclass[titlepage]{article}
+\usepackage[spanish]{babel} % Cambia titulos, teoremas, definiciones, etc. a español  
+\usepackage[utf8]{inputenc} % Permite uso de símbolos como acentos o tildes
+\usepackage[a4paper, top = 1in, bottom = 1in, foot = 0in, footskip = 0.5in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb, latexsym} % Simbolos de mates
+\usepackage{minted} % Insertar codigo. No acepta acentos.
+\usepackage[table, xcdraw]{xcolor} % Colorear cosas como tablas
+\usepackage{graphicx}
+\usepackage{svg} % Soporte de imagenes tipo svg
+\usepackage{bm} % Texto bloque para conjuntos
+\usepackage{appendix}
+\usepackage{setspace}
+\usepackage{listings} % Insertar codigo 
+
+% Configuracion de listings:
+
+    % Para reconocer unicode
+    \lstset{literate=
+      {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+      {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+      {à}{{\`a}}1 {è}{{\`e}}1 {ì}{{\`i}}1 {ò}{{\`o}}1 {ù}{{\`u}}1
+      {À}{{\`A}}1 {È}{{\'E}}1 {Ì}{{\`I}}1 {Ò}{{\`O}}1 {Ù}{{\`U}}1
+      {ä}{{\"a}}1 {ë}{{\"e}}1 {ï}{{\"i}}1 {ö}{{\"o}}1 {ü}{{\"u}}1
+      {Ä}{{\"A}}1 {Ë}{{\"E}}1 {Ï}{{\"I}}1 {Ö}{{\"O}}1 {Ü}{{\"U}}1
+      {â}{{\^a}}1 {ê}{{\^e}}1 {î}{{\^i}}1 {ô}{{\^o}}1 {û}{{\^u}}1
+      {Â}{{\^A}}1 {Ê}{{\^E}}1 {Î}{{\^I}}1 {Ô}{{\^O}}1 {Û}{{\^U}}1
+      {œ}{{\oe}}1 {Œ}{{\OE}}1 {æ}{{\ae}}1 {Æ}{{\AE}}1 {ß}{{\ss}}1
+      {ű}{{\H{u}}}1 {Ű}{{\H{U}}}1 {ő}{{\H{o}}}1 {Ő}{{\H{O}}}1
+      {ç}{{\c c}}1 {Ç}{{\c C}}1 {ø}{{\o}}1 {å}{{\r a}}1 {Å}{{\r A}}1
+      {€}{{\euro}}1 {£}{{\pounds}}1 {«}{{\guillemotleft}}1
+      {»}{{\guillemotright}}1 {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {¿}{{?`}}1
+    }
+    
+    % Configuracion global (para no tener que ajustar la particular)
+    \lstset{ 
+          breaklines = true,      % sets automatic line breaking
+          %captionpos = b,        % sets the caption-position to bottom
+          language = Matlab,      % the language of the code
+          %numbers = left,        % where to put the line-numbers; possible values are (none, left, right)
+          %numbersep = 5pt,       % how far the line-numbers are from the code
+          %tabsize = 2,	          % sets default tabsize to 2 spaces
+          title = \lstname        % show the filename of files included with \lstinputlisting; also try caption instead of title
+    }
+
+% Cambiamos los titulos de la seccion del anexo a español
+\renewcommand\appendixname{Anexo}
+\renewcommand\appendixpagename{Anexos}
+
+% Agregamos espacio a la altura de las filas de las 
+% tablas en LaTex
+\renewcommand{\arraystretch}{1.5}
+
+% Declaramos los conjuntos de los números
+\newcommand{\feal}{\mathbb{F}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Natural}{\mathbb{N}}
+\newcommand{\Whole}{\mathbb{Z}}
+
+
+\newtheorem{mi_def}{Definición}
+\newtheorem{mi_teorema}{Teorema}
+\newtheorem{mi_lema}{Lema}
+\newtheorem{mi_cor}{Corolario}
+
+\title{Proyecto I: Método Simplex}
+\author{Andrés Ángeles \\ Mauricio Trejo}
+\date{Octubre 2018}
+
+\decimalpoint % Escribe 1.5 en vez de 1,5
+
+\begin{document}
+
+\maketitle
+
+%\tableofcontents
+
+\newpage
+
+\onehalfspacing % Incrementa espacio entre lineas a 1.5
+
+\section{Implementación de la Fase II Revisada}
+
+La Fase II revisada o modificada es una implementación matricial de la Fase II del Método Simplex con dos fases. Sus principales objetivos son eliminar el uso de matrices inversas para calcular el vector de costos relativos y disminuir el uso de memoria sustituyendo los diccionarios por dos conjuntos de índices que se actualizan en cada paso y que indican qué variables entran y salen de la base.
+
+El código de nuestra implementación de la Fase II Revisada se encuentra en el anexo al final del documento, al igual que el resto de de los programas que escribimos para generar las gráficas y los resultados presentados de aquí en adelante.
+
+Consideremos el siguiente problema y verifiquemos que nuestro programa lo resuelve correctamente:
+
+\begin{equation} \label{prob-ejemplo-original}
+    \begin{aligned}
+        &\text{maximizar}   && 3x_1 + x_2 + 3x_3        \\
+        &\text{sujeto a}    && 2x_1 + x_2 + x_3 \leq 2  \\
+        &                   && x_1 + 2x_2 + 3x_3 \leq 5 \\
+        &                   && 2x_1 + 2x_2 + x_3 \leq 6 \\
+        &                   && x_1, x_2, x_3 \geq 0
+    \end{aligned}
+\end{equation}
+
+Si multiplicamos la función objetivo por $-1$ y agregamos variables de holgura $x_4, x_5, x_6$, entonces obtenemos el siguiente problema de minimización en forma estándar
+
+\begin{equation}
+    \begin{aligned} \label{prob-ejemplo-min-forma-estandar}
+        &\text{minimizar}   && -3x_1 - x_2 - 3x_3            \\
+        &\text{sujeto a}    && 2x_1 + x_2 + x_3 + x_4 = 2    \\
+        &                   && x_1 + 2x_2 + 3x_3 + x_5 = 5   \\
+        &                   && 2x_1 + 2x_2 + x_3 + x_6 = 6   \\
+        &                   && x \geq \bm{0}
+    \end{aligned}
+\end{equation}
+
+El tableau asociado al problema (\ref{prob-ejemplo-min-forma-estandar}) es
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|c|c|}
+        %\rowcolor[HTML]{C0C0C0}
+        \hline
+                & $x_1$ & $x_2$ & $x_3$ & $x_4$ & $x_5$ & $x_6$ & LD \\ \hline
+        $x_4$   & 2     & 1     & 1     & 1     &       &       & 2  \\ \hline
+        $x_5$   & 1     & 2     & 3     &       & 1     &       & 5  \\ \hline
+        $x_6$   & 2     & 2     & 1     &       &       & 1     & 6  \\ \hline
+                & 3     & 1     & 3     &       &       &       &    \\ \hline
+    \end{tabular}
+    \caption{Tableau en estado 0 asociado al problema (\ref{prob-ejemplo-min-forma-estandar})}
+    \label{tab:tablaeau-1}
+\end{table}
+
+Usamos la Regla de Bland para escoger las variables de entrada y de salida.
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|c|c|}
+        %\rowcolor[HTML]{C0C0C0}
+        \hline
+                & $x_1$ & $x_2$             & $x_3$                                     & $x_4$               & $x_5$ & $x_6$ & LD    \\ \hline
+        $x_1$   & $1$   & $\frac{1}{2}$     & $\frac{1}{2}$                             & $\frac{1}{2}$       &       &       & $1$   \\ \hline
+        $x_5$   &       & $\frac{3}{2}$     & $\frac{5}{2}$ \cellcolor[HTML]{C0C0C0}    & $-\frac{1}{2}$      & $1$   &       & $4$   \\ \hline
+        $x_6$   &       & $1$               &                                           & $-1$                &       & $1$   & $4$   \\ \hline
+                &       & $-\frac{1}{2}$    & $\frac{3}{2}$                             & $-\frac{3}{2}$      &       &       & $-3$  \\ \hline
+    \end{tabular}
+    \caption{Tableau en la $1^{\text{ra}}$ iteración}
+    % \label{tab:tablaeau-1}
+\end{table}
+
+\begin{table}[ht]
+    \centering
+    \begin{tabular}{|c|c|c|c|c|c|c|c|}
+        %\rowcolor[HTML]{C0C0C0}
+        \hline
+                & $x_1$ & $x_2$             & $x_3$     & $x_4$               & $x_5$           & $x_6$ & LD                \\ \hline
+        $x_1$   & $1$   & $\frac{1}{5}$     &           & $\frac{3}{5}$       & $-\frac{1}{5}$  &       & $\frac{1}{5}$     \\ \hline
+        $x_3$   &       & $\frac{3}{5}$     & $1$       & $-\frac{1}{5}$      & $\frac{2}{5}$   &       & $\frac{8}{5}$     \\ \hline
+        $x_6$   &       & $1$               &           & $-1$                &                 & $1$   & $4$               \\ \hline
+                &       & $-\frac{7}{5}$    &           & $-\frac{6}{5}$      & $-\frac{3}{5}$  &       & $-\frac{27}{5}$             \\ \hline
+    \end{tabular}
+    \caption{Tableau final del problema (\ref{prob-ejemplo-min-forma-estandar})}
+    \label{tab:tablaeau-final}
+\end{table}
+
+La solución del problema (\ref{prob-ejemplo-min-forma-estandar}) es $x^* = (x_1,x_2, x_3, x_4, x_5, x_6)^T = (\frac{1}{5}, 0, \frac{8}{5}, 0, 0, 4)^T$ y el valor óptimo es $z^* = -\frac{27}{5}$, por lo que la solución y el valor óptimo del problema original son
+\begin{equation*}
+    x^* = (x_1,\ x_2,\ x_3)^T = \Bigg(\frac{1}{5},\ 0,\ \frac{8}{5}\Bigg)^T, \quad z^* = \frac{27}{5}
+\end{equation*}
+
+Aquí incluimos el resultado obtenido en la consola de MATLAB al ejecutar nuestro programa: 
+
+\begin{verbatim}
+    >> A = [2 1 1; 1 2 3; 2 2 1]; b = [2; 5; 6]; c = [3; 1; 3]; c = -c;
+    >> [x0, z0, ban, iter] = mSimplexFaseII(A, b, c, false)
+    
+    x0 =
+    
+           1/5     
+           0       
+           8/5     
+    
+    
+    z0 =
+    
+         -27/5     
+    
+    
+    ban =
+    
+           0       
+    
+    
+    iter =
+    
+           2  
+\end{verbatim}
+
+\noindent\textbf{Nota:} el problema (\ref{prob-ejemplo-original}) lo utiliza David Luenberger en su libro \textit{Linear and Nonlinear Programming} para ejemplificar el uso del tableau en el capítulo tres, \textit{El Método Simplex}, p.48.
+
+\section{El problema de Klee-Minty}
+
+Tomonari Kitahara y Shinji Mizuno presentaron una versión simplificada del problema de Klee-Minty de dimensión $m$, el cual queda dado por 
+\begin{equation} \label{klee-minty}
+    \begin{aligned} 
+        & \text{minimizar}  && -\textstyle\sum_{i = 1}^{m} x_i \\
+        & \text{sujeto a}   && \quad x_1 \leq 1 \\
+        &                   && \quad 2\textstyle\sum_{j = 1}^{i-1} x_j + x_i \leq 2^i - 1 \quad \text{para} \quad i = 2,\dots,m \\
+        &                   && \quad x_i \geq 0 \quad \text{para} \quad i = 1,\dots,m
+    \end{aligned}
+\end{equation}
+Este problema tiene algunas propiedades importantes que discutiremos brevemente.
+
+Sea $h^T = (h_1, \dots, h_m) \in \Real^m$ un vector de variables de holgura, entonces el problema (\ref{klee-minty}) en forma estándar es \hspace*{\fill} \null 
+\begin{equation} \label{klee-minty-forma-estandar}
+    \begin{aligned}
+        & \text{minimizar}  && -\textstyle\sum_{i = 1}^{m} x_i  \\
+        & \text{sujeto a}   && \quad x_1 + h_1 = 1 \\
+        &                   && \quad 2\textstyle\sum_{j = 1}^{i-1} x_j + x_i + h_i = 2^i - 1 \quad \text{para} \quad i = 2,\dots,m \\
+        &                   && \quad x_i, h_i \geq 0 \quad \text{para} \quad i = 1,\dots,m
+    \end{aligned}
+\end{equation}
+El problema en forma estándar tiene $m$ restricciones de igualdad y $n = 2m$ variables.
+\begin{mi_lema} \label{lema-klee-minty}
+    El problema (\ref{klee-minty-forma-estandar}) tiene las siguientes propiedades
+    \begin{enumerate}
+        \item En cada SBF, existe $k \in \{1, 2, \dots, m\}$, tal que $x_k$ y $h_k$ son variables básicas.
+        \item Existen $2^m$ soluciones básicas factibles.
+        \item La Fase II revisada realiza $(2^m - 1)$ iteraciones para resolver el problema.
+    \end{enumerate}
+\end{mi_lema}
+
+El tiempo de máquina y el número de iteraciones que realizó nuestra implementación de la Fase II para resolver el problema de Klee-Minty para $m = 3, \dots, 10$ se muestran en el cuadro que sigue
+
+\begin{table}[ht]
+    \begin{center}
+        \begin{tabular}{|c|c|c|}
+            \hline
+            \rowcolor[HTML]{C0C0C0} 
+            Dimensión ($m$) & Iteraciones    & Tiempo de máquina\\ \hline
+            3               & 7              & 0.0071           \\ \hline
+            4               & 15             & 0.0246           \\ \hline
+            5               & 31             & 0.0093           \\ \hline
+            6               & 63             & 0.0019           \\ \hline
+            7               & 127            & 0.0068           \\ \hline
+            8               & 255            & 0.0056           \\ \hline
+            9               & 511            & 0.0152           \\ \hline
+            10              & 1023           & 0.0227           \\ \hline
+        \end{tabular}
+        \caption{Tabla de resultados de resolver el problema (\ref{klee-minty-forma-estandar}) para distintos valores de $m$ por primera vez}
+        \label{tabla-resultados-klee-minty}
+    \end{center}
+\end{table}
+
+\newpage
+
+Notemos que el número de iteraciones en la segunda columna de la tabla que se muestra en el cuadro \ref{tabla-resultados-klee-minty}  cumple el tercer enunciado del lema (\ref{lema-klee-minty}), pues, para cada $m \in \{3,4,\dots, 10\}$, el número de iteraciones es $2^m-1$.
+
+\begin{figure}[ht]
+    \centering
+    \includesvg[width = 0.85\textwidth]{Graficas/graficaKleeMinty.svg}
+    \caption{Gráfica de la dimensión $(m)$ vs el número de iteraciones realizadas para resolver el problema (\ref{klee-minty-forma-estandar}) para distintos valores de $m$ por primera vez}
+    \label{Fig: grafica-resultados-klee-minty}
+\end{figure}
+
+ La gráfica anterior (Figura \ref{Fig: grafica-resultados-klee-minty}) nos muestra un resultado contradictorio: resolver el problema de Klee-Minty de dimensión $m = 4$ ocupa más tiempo de máquina que resolver los problemas para $m = 5, 6, \dots, 10$ a pesar de que la Fase II realiza más iteraciones para llegar a la solución. Sin embargo, los resultados mejoran si ejecutamos el código más de una vez.
+ 
+ En el siguiente recuadro presentamos la tabla seguida de la gráfica de los tiempos de máquina para resolver cada problema que obtuvimos después de ejecutar el script \texttt{SimplexKleeMinty} un total de quince veces.
+
+\begin{table}[ht]
+    \begin{center}
+        \begin{tabular}{|c|c|c|}
+            \hline
+            \rowcolor[HTML]{C0C0C0} 
+            Dimensión ($m$) & Iteraciones    & Tiempo de máquina\\ \hline
+            3               & 7              & 0.0003           \\ \hline
+            4               & 15             & 0.0004           \\ \hline
+            5               & 31             & 0.0006           \\ \hline
+            6               & 63             & 0.0013           \\ \hline
+            7               & 127            & 0.0025           \\ \hline
+            8               & 255            & 0.0062           \\ \hline
+            9               & 511            & 0.0100           \\ \hline
+            10              & 1023           & 0.0214           \\ \hline
+        \end{tabular}
+        \caption{Tabla de resultados de resolver el problema (\ref{klee-minty-forma-estandar}) para distintos valores de $m$ después de $15$ repeticiones}
+        \label{tabla-resultados-klee-minty-repeticion-15}
+    \end{center}
+\end{table}
+
+\begin{figure}[ht] 
+    \centering
+    \includesvg[width = 0.81\textwidth]{Graficas/graficaKleeMinty_15Vueltas.svg}
+    \caption{Gráfica de la dimensión $(m)$ vs el número de iteraciones realizadas para resolver el problema (\ref{klee-minty-forma-estandar}) para distintos valores de $m$ después de $15$ repeticiones}
+    \label{Fig: grafica-resultados-klee-minty-repeticion-15}
+\end{figure}
+
+\newpage
+
+En la gráfica correspondiente a la Figura \ref{Fig: grafica-resultados-klee-minty-repeticion-15} se aprecia claramente que el tiempo de máquina aumenta de forma exponencial conforme aumenta la dimensión del problema de Klee-Minty.
+
+\section{Estudio de la complejidad computacional de la Fase II revisada}
+
+\begin{mi_def}[Notación de Bachmann–Landau]
+    Sean $\Omega \subset \Real^+$ un conjunto no acotado y \newline $f,g: \Omega \longrightarrow \Real$ dos funciones tales que $g$ es estrictamente positiva a partir de un valor $x_0 \in \Omega$, entonces escribimos que 
+    \begin{equation*}
+        f(x) = \mathcal{O}(g(x)) \quad \text{conforme }\quad x \longrightarrow \infty
+    \end{equation*}
+    si y sólo si $\exists \ M \in \Real^+ \ \exists \ x_0 \in \Omega \ \Big(|f(x)| \leq Mg(x)\Big)$
+\end{mi_def}
+
+\begin{figure}[ht]
+    \centering
+    \includesvg[width = 0.81\textwidth]{Graficas/graficaSimplexEmpirico.svg}
+    \caption{Gráfica de la mínima dimensión ($\min(m,n)$) vs el número de iteraciones realizadas para resolver cada problema para $50$ problemas de Programación Lineal}
+    \label{Fig: grafica-complejidad-compu}
+\end{figure}
+
+\newpage
+
+La gráfica de la Figura \ref{Fig: grafica-complejidad-compu} nos muestra que la relación entre $\log(\min(m,n))$ y el número de iteraciones en escala logarítmica, $\log(\gamma)$ es lineal, es decir,
+\begin{equation*}
+    \log(\gamma) = p\log\big(\min(m,n)\big) + k \quad \text{donde} \quad p \in \Real^+,\ k \in \Real
+\end{equation*}
+entonces \hfill \null
+\begin{align*}
+    & 10^{\log(\gamma)} = 10^{p\log\big(\min(m,n)\big) + k} \\
+    \Longrightarrow \quad & \gamma = 10^k\min(m,n)^p \\
+    \Longrightarrow \quad & \gamma = k_1\big(\min(m,n)\big)^p \quad \text{donde} \quad k_1 \in \Real^+  
+\end{align*}
+Además, por definición, sabemos que el mínimo de $m$ y $n$ es menor o igual que ambas y que $m + n$ es estrictamente mayor que $m$ y $n$, pues no existen problemas de Programación Lineal con dimensiones menores o iguales a cero, entonces 
+\begin{align*}
+    & \big(\min(m,n)\big)^p \leq m^p, n^p \quad \text{y} \quad m^p, n^p \leq (m + n)^p \\[2pt]
+    \Longrightarrow \quad & \big(\min(m,n)\big)^p \leq (m + n)^p \qquad \forall \ m,n \geq 1 \\[2pt]
+    \Longrightarrow \quad & \gamma = k_1\big(\min(m,n)\big)^p \leq k_1(m + n)^p \qquad \forall \ m,n \geq 1
+\end{align*}
+por lo que $\gamma = \mathcal{O}\big((m+n)^p\big)$ y podemos concluimos que el número de iteraciones, $\gamma$, incrementa de forma polinomial con grado $p \in \Natural$ conforme aumenta el mínimo entre $m$ y $n$.
+
+\newpage
+
+\appendixpage
+\begin{appendices}
+
+    \section{Implementación de la Fase II Revisada}
+        \subsection{Código con problemas de prueba}
+            \lstinputlisting{MATLAB/probar_mSimplexFaseII.m}
+        \subsection{Código de la Fase II Revisada}
+            \lstinputlisting{MATLAB/mSimplexFaseII.m}
+        
+    \section{El problema de Klee-Minty}
+        \subsection{Código para generar el problema de tamaño $m$}
+            \lstinputlisting{MATLAB/generaKleeMinty.m}
+        \subsection{Código que mide el tiempo de máquina de la solución}
+            \lstinputlisting{MATLAB/SimplexKleeMinty.m}
+        
+    \section{Estudio de la complejidad computacional de la Fase II revisada}
+        \lstinputlisting{MATLAB/simplexEmpirico.m}
+    
+\end{appendices}
+
+\end{document}

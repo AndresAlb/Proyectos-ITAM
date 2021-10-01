@@ -1,0 +1,1181 @@
+
+---
+title: Reporte técnico
+output: html_document
+---
+
+Karina Ibarra 136608, Daniela Ordoñez 136977, Andres Albores 131749
+
+#IntroducciÃ³n
+
+###Violencia intrafamiliar (plantamiento del problema)
+
+Violencia intrafamiliar es un tipo de abuso que puede incluir violencia fisica, violencia sexual, amenazas de violencia o abuso emocional. Su origen es debatido por muchos aunque se cree que las principales causas son falta de recursos econÃ³micos, el abuso del alcohol y la drogadicciÃ³n, asociados comÃºnmente con la pobreza.
+
+Fuente:
+http://www.violenciaenlafamilia.conapo.gob.mx/en/Violencia_Familiar/Violencia_en_la_Familia
+
+### Base de datos utilizada y descripcion de datos
+
+Los datos en los que nos basamos para nuestra investigaciÃ³n se obtuvieron de la DirecciÃ³n General de Epidemiologia de la Secretaria de Salud durante el perido de 2003 a 2014
+
+La informaciÃ³n esta dividida en:
+
+ -Casos reportados por fuentes: muestra el nÃºmero total de victimas por entidad federativa, reportado por las principales instituciones de salud.
+
+ -Casos por grupo de Edad: Presenta el nÃºmero total de victimas por entidad federativa, reportado para los grupos de edad establecidos.
+
+ -Casos de ocurrencia por mes: Presenta el nÃºmero total de victimas, por entidad federativa, reportado por mes.
+
+Asimismo, para cada uno de estos tres grandes grupos la informaciÃ³n se divide en tres categorias segÃºn gÃ©nero: Femenino, Masculino y ambos.
+
+**Nota:** Las categorias utilizadas para cada uno de los tres grandes grupos se presentan en el diccionario adjunto. 
+
+### Del Presente Documento
+En este documento se presenta una anÃ¡lisis de los casos presentados de violencia domestica,durante el periodo 2003-2014, basado en los datos registrados por la DirecciÃ³n General de EpidemiologÃ?a de la Secretaria de Salud. En este se presenta, en una primera parte los problemas que se plantean para ser resueltos mediante el anÃ¡lisis; posteriormente se describe cÃ³mo es que se han obtenido los datos y con quÃ© medios se ha realizado la obtenciÃ³n de los mismas,asimismo, se realiza una breve descripciÃ³n de los datos y con base a esta se define el alcance y lÃ?mite de los datos; ulteriormente se transforman los datos obtenidos a formatos que permitan una mejor manipulaciÃ³n de los mismos y faciliten su analisis; en seguida se realizan pruebas de calidad sobre los datos de transformados;procedemos despuÃ©s a realizar el anÃ¡lisis exploratorio de los datos con el objetivo de resolver los problemas que se plantearon en un inicio y , finalmente, se se presentan las conclusiones para el trabajo realizado.
+
+#DefiniciÃ³n del Problema
+
+En el presente documento nos proponemos identificar cuÃ¡les son las Ã©pocas en que se debe prestar mayor atenciÃ³n al fenÃ³meno, cuÃ¡l es la tendencia del fenÃ³meno, cuÃ¡les son las instituciones que atienden un mayor nÃºmero de casos, quÃ© entidades y quÃ© grupos de edad y quÃ© sexo son mÃ¡s vulnerables al fenÃ³meno para mejorar el apoyo que se brinda a las vÃ?ctimas y las acciones preventivas que se toman en cada estado.
+
+#ObtenciÃ³n de datos
+
+http://www.epidemiologia.salud.gob.mx/anuario/html/anuarios.html
+
+### De los Recursos Utilizados
+
+Los datos empleados para el anÃ¡lisis fueron obtenidos de la pagina http://www.epidemiologia.salud.gob.mx/anuario/html/anuarios.html, la informaciÃ³n fue obtenida en formato pdf y transformada mediante el programa "Tabula" a formato csv para facilitar el anÃ¡lisis (para mayor informaciÃ³n sobre el programa visite http://tabula.technology/). El anÃ¡lisis de los datos se realizÃ³ en "RStudio", la informaciÃ³n tÃ©cnica de este Ãºltimo se presenta a continuaciÃ³n:
+
+
+```{r Directorio}
+directorio <- "C:/Users/Andres/OneDrive/Tenth Semester/Estadística Aplicada I/GitHub/EA1"
+setwd(directorio)
+knitr::opts_knit$set(root.dir = directorio)
+```
+
+```{r Informacion Session, echo=FALSE}
+sessionInfo()
+```
+
+## Realizamos la lectura de los datos
+
+```{r LecturaValores, echo=FALSE}
+
+library(plyr)
+###FUENTE
+violencia.fuente <- NULL 
+titulos.fuente <- NULL
+for (i in 1:12){ 
+violencia.fuente[[i]] <- read.csv(paste("./Datos/BrutosCSV_funcionan/Fuente/FueFem",i+2002,".csv", sep = "" ), sep = ",", stringsAsFactors = FALSE, encoding = "UTF-8")
+titulos.fuente[i] <- paste("FueFem",i+2002,sep="")
+}
+
+for (i in 1:12){
+violencia.fuente[[i+12]] <- read.csv(paste("./Datos/BrutosCSV_funcionan/Fuente/FueGen",i+2002,".csv",sep=""), sep = ",", stringsAsFactors=FALSE, encoding = "UTF-8")
+titulos.fuente[i+12] <- paste("FueGen",i+2002,sep="")
+}
+
+for (i in 1:12){
+violencia.fuente[[i+24]] <- read.csv(paste("./Datos/BrutosCSV_funcionan/Fuente/FueMas",i+2002,".csv",sep=""), sep = ",", stringsAsFactors=FALSE, encoding = "UTF-8")
+titulos.fuente[i+24] <- paste("FueMas",i+2002,sep="")
+}
+names(violencia.fuente) <- titulos.fuente
+
+###EDAD
+violencia.edad <- NULL
+titulos.edad <- NULL
+for (i in 1:12){
+violencia.edad[[i]] <- read.csv(paste("./Datos/BrutosCSV_funcionan/Grupo/GruFem",i+2002,".csv",sep=""),stringsAsFactors=FALSE)
+titulos.edad[i] <- paste("GruFem",i+2002,sep="")
+}
+
+for (i in 1:12){
+violencia.edad[[i+12]] <- read.csv(paste("./Datos/BrutosCSV_funcionan/Grupo/GruGen",i+2002,".csv",sep=""),stringsAsFactors=FALSE)
+titulos.edad[i+12] <- paste("GruGen",i+2002,sep="")
+}
+
+for (i in 1:12){
+violencia.edad[[i+24]] <- read.csv(paste("./Datos/BrutosCSV_funcionan/Grupo/GruMas",i+2002,".csv",sep=""),stringsAsFactors=FALSE)
+titulos.edad[i+24] <- paste("GruMas",i+2002,sep="")
+}
+names(violencia.edad) <- titulos.edad
+
+###MES
+violencia.mes <- NULL 
+titulos.mes <- NULL
+for (i in 1:12){ 
+violencia.mes[[i]] <- read.csv(paste("./Datos/BrutosCSV_funcionan/Mes/MesFem",i+2002,".csv", sep = "" ), stringsAsFactors = FALSE)
+titulos.mes[i] <- paste("MesFem",i+2002,sep="")
+ }
+
+for (i in 1:12){
+violencia.mes[[i+12]] <- read.csv(paste("./Datos/BrutosCSV_funcionan/Mes/MesGen",i+2002,".csv",sep=""),stringsAsFactors=FALSE)
+titulos.mes[i+12] <- paste("MesGen",i+2002,sep="")
+}
+
+for (i in 1:12){
+violencia.mes[[i+24]] <- read.csv(paste("./Datos/BrutosCSV_funcionan/Mes/MesMas",i+2002,".csv",sep=""),stringsAsFactors=FALSE)
+titulos.mes[i+24] <- paste("MesMas",i+2002,sep="")
+}
+names(violencia.mes) <- titulos.mes
+```
+
+## Limpieza de datos
+
+```{r Edicion}
+##FUENTE
+for (i in 1:36){ 
+names(violencia.fuente[[i]]) <-toupper(names(violencia.fuente[[i]]))
+}
+
+for (i in 1:36){ 
+names(violencia.fuente[[i]]) <-gsub("SEDEMAR","SEMAR",names(violencia.fuente[[i]]))
+}
+
+for (i in 1:36){ 
+names(violencia.fuente[[i]]) <-gsub("SALUD","SSA",names(violencia.fuente[[i]]))
+}
+
+##EDAD
+for (i in 1:36){ 
+names(violencia.edad[[i]]) <- c("Estado","Menor a 1","1 a 4","5 a 9", "10 a 14","15 a 19", "20 a 24","25 a 44", "45 a 49","50 a 59","60 a 64","65 o Mas","Desconocida")
+}
+for (i in 1:36){ 
+names(violencia.edad[[i]]) <-toupper(names(violencia.edad[[i]]))
+}
+
+##MES
+for (i in 1:36){ 
+names(violencia.mes[[i]]) <-toupper(names(violencia.mes[[i]]))
+}
+```
+
+##Guardamos la informacion en 3 grupos de DATA.
+
+````{r SaveData}
+##FUENTE
+violencia.intrafamiliar.fuente <- ldply(violencia.fuente,data.frame)
+violencia.intrafamiliar.fuente <- violencia.intrafamiliar.fuente[,1:12]
+save(violencia.intrafamiliar.fuente, file="violencia_intrafamiliar_Fuente.RData")
+
+##EDAD
+violencia.intrafamiliar.edad <- ldply(violencia.edad,data.frame)
+violencia.intrafamiliar.edad <- violencia.intrafamiliar.edad[,1:14]
+save(violencia.intrafamiliar.edad, file="violencia_intrafamiliar_Edad.RData")
+
+##MES
+violencia.intrafamiliar.mes <- ldply(violencia.mes,data.frame)
+violencia.intrafamiliar.mes <- violencia.intrafamiliar.mes[,1:15]
+save(violencia.intrafamiliar.mes, file="violencia_intrafamiliar_Mes.RData")
+```
+
+##Se consolido la informacion en 3 grupos: violencia.intrafamiliar.fuente, violencia.intrafamiliar.grupo, violencia.intrafamiliar.mes. A continuacion se presenta un extracto de cada uno de ellos:
+
+*Reporte de casos de violencia por Fuente/Institucion*
+```{r, echo=FALSE}
+head(violencia.intrafamiliar.fuente)
+```
+
+*Reporte de casos de violencia por Grupo de Edad*
+```{r, echo=FALSE}
+head(violencia.intrafamiliar.edad)
+```
+
+*Reporte de casos de violencia por Mes*
+```{r, echo=FALSE}
+head(violencia.intrafamiliar.mes)
+```
+
+
+##Se presenta la estructura de los archivos consolidados y las variables de cada uno.
+
+*Reporte de casos de violencia por Fuente/Institucion*
+```{r, echo=FALSE}
+str(violencia.intrafamiliar.fuente)
+```
+
+*Reporte de casos de violencia por Grupo de Edad*
+```{r, echo=FALSE}
+str(violencia.intrafamiliar.edad)
+```
+
+*Reporte de casos de violencia por Mes*
+```{r, echo=FALSE}
+str(violencia.intrafamiliar.mes)
+```
+
+##Limpieza de los datos despues de la carga
+
+##Se introducen dos nuevas variables: Sexo y Periodo.
+##Se elimina la variable .id en cada DATA.
+```{r Sexo y Periodo}
+##FUENTE
+violencia.intrafamiliar.fuente$PERIODO <- factor(substr(violencia.intrafamiliar.fuente$.id,7,10), ordered=TRUE)
+violencia.intrafamiliar.fuente$SEXO <- factor(substr(violencia.intrafamiliar.fuente$.id,4,4))
+violencia.intrafamiliar.fuente$.id <- NULL
+violencia.intrafamiliar.fuente <- within(violencia.intrafamiliar.fuente,{
+ SEXO <- gsub("M","Masculino",SEXO,fixed=TRUE)
+ SEXO <- gsub("F","Femenino",SEXO,fixed=TRUE)
+ SEXO <- gsub("G","General",SEXO,fixed=TRUE)
+ })
+
+save(violencia.intrafamiliar.fuente, file="violencia_intrafamiliar_Fuente(Sexo-Periodo).RData")
+
+##EDAD
+violencia.intrafamiliar.edad$PERIODO <- factor(substr(violencia.intrafamiliar.edad$.id,7,10), ordered=TRUE)
+violencia.intrafamiliar.edad$SEXO <- factor(substr(violencia.intrafamiliar.edad$.id,4,4))
+violencia.intrafamiliar.edad$.id <- NULL
+violencia.intrafamiliar.edad <- within(violencia.intrafamiliar.edad,{
+ SEXO <- gsub("M","Masculino",SEXO,fixed=TRUE)
+ SEXO <- gsub("F","Femenino",SEXO,fixed=TRUE)
+ SEXO <- gsub("G","General",SEXO,fixed=TRUE)
+ })
+
+save(violencia.intrafamiliar.edad, file="violencia_intrafamiliar_Edad(Sexo-Periodo).RData")
+
+##MES
+violencia.intrafamiliar.mes$PERIODO <- factor(substr(violencia.intrafamiliar.mes$.id,7,10), ordered=TRUE)
+violencia.intrafamiliar.mes$SEXO <- factor(substr(violencia.intrafamiliar.mes$.id,4,4))
+violencia.intrafamiliar.mes$.id <- NULL
+violencia.intrafamiliar.mes <- within(violencia.intrafamiliar.mes,{
+ SEXO <- gsub("M","Masculino",SEXO,fixed=TRUE)
+ SEXO <- gsub("F","Femenino",SEXO,fixed=TRUE)
+ SEXO <- gsub("G","General",SEXO,fixed=TRUE)
+ })
+
+save(violencia.intrafamiliar.mes, file="violencia_intrafamiliar_Mes(Sexo-Periodo).RData")
+```
+
+##Convertimos las variables a tipo nominal
+```{r Variable Nominal, echo=FALSE}
+
+#FUENTE
+violencia.intrafamiliar.fuente$ESTADO <- factor(violencia.intrafamiliar.fuente$ESTADO)
+violencia.intrafamiliar.fuente$SEXO <- factor(violencia.intrafamiliar.fuente$SEXO)
+
+save(violencia.intrafamiliar.fuente,file="violencia_Fuente_Limp.RData")
+
+#EDAD
+violencia.intrafamiliar.edad$ESTADO <- factor(violencia.intrafamiliar.edad$ESTADO)
+violencia.intrafamiliar.edad$SEXO <- factor(violencia.intrafamiliar.edad$SEXO)
+
+save(violencia.intrafamiliar.edad,file="violencia_Edad_Limp.RData")
+
+
+#MES
+violencia.intrafamiliar.mes$ESTADO <- factor(violencia.intrafamiliar.mes$ESTADO)
+violencia.intrafamiliar.mes$SEXO <- factor(violencia.intrafamiliar.mes$SEXO)
+
+save(violencia.intrafamiliar.mes,file="violencia_Mes_Limp.RData")
+
+```
+
+
+##Quitamos los espacios entre numeros
+```{r Quitar Espacios, echo=FALSE }
+##FUENTE
+violencia.intrafamiliar.fuente <- within(violencia.intrafamiliar.fuente, {
+   SSA <- gsub("\\s+|,","",SSA)
+   IMSS.ORD <- gsub("\\s+|,","",IMSS.ORD)
+   ISSSTE <- gsub("\\s+|,","",ISSSTE)
+   IMSS.OP <- gsub("\\s+|,","",IMSS.OP)
+   DIF <- gsub("\\s+|,","",DIF)
+   PEMEX <- gsub("\\s+|,","",PEMEX)
+   SEDENA <- gsub("\\s+|,","",SEDENA)
+   SEMAR <- gsub("\\s+|,","",SEMAR)
+   OTRAS <- gsub("\\s+|,","",OTRAS)
+ })
+
+##EDAD
+violencia.intrafamiliar.edad <- within(violencia.intrafamiliar.edad,{
+ MENOR.A.1 <- gsub("\\s+|,","",MENOR.A.1)
+ X1.A.4 <- gsub("\\s+|,|,","",X1.A.4)
+ X5.A.9 <- gsub("\\s+|,","",X5.A.9)
+ X10.A.14 <- gsub("\\s+|,","",X10.A.14)
+ X15.A.19 <- gsub("\\s+|,","",X15.A.19)
+ X20.A.24 <- gsub("\\s+|,","",X20.A.24)
+ X25.A.44 <- gsub("\\s+|,","",X25.A.44)
+ X45.A.49 <- gsub("\\s+|,","",X45.A.49)
+ X50.A.59 <- gsub("\\s+|,","",X50.A.59)
+ X60.A.64 <- gsub("\\s+|,","",X60.A.64)
+ X65.O.MAS <- gsub("\\s+|,","",X65.O.MAS)
+ DESCONOCIDA <- gsub("\\s+|,","",DESCONOCIDA) 
+})
+
+##MES
+
+violencia.intrafamiliar.mes <- within(violencia.intrafamiliar.mes, {
+   ENE <- gsub("\\s+|,","",ENE)
+   FEB <- gsub("\\s+|,","",FEB)
+   MAR <- gsub("\\s+|,","",MAR)
+   ABR <- gsub("\\s+|,","",ABR)
+   MAY <- gsub("\\s+|,","",MAY)
+   JUN <- gsub("\\s+|,","",JUN)
+   JUL <- gsub("\\s+|,","",JUL)
+   AGO <- gsub("\\s+|,","",AGO)
+   SEP <- gsub("\\s+|,","",SEP)
+   OCT <- gsub("\\s+|,","",OCT)
+   NOV <- gsub("\\s+|,","",NOV)
+   DIC <- gsub("\\s+|,","",DIC)
+ })
+
+```
+
+### Sustituimos los valores nulos por NA
+
+```{r}
+
+# FUENTE
+violencia.intrafamiliar.fuente <- within(violencia.intrafamiliar.fuente, {
+     SSA <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",SSA)
+     IMSS.ORD <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",IMSS.ORD)
+     ISSSTE <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",ISSSTE)
+     IMSS.OP <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",IMSS.OP)
+     DIF <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",DIF)
+     PEMEX <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",PEMEX)
+     SEDENA <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",SEDENA)
+     SEMAR <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",SEMAR)
+     OTRAS <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",OTRAS)
+     })
+
+# MES
+violencia.intrafamiliar.mes <- within(violencia.intrafamiliar.mes, {
+     ENE <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",ENE)
+     FEB <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",FEB)
+     MAR <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",MAR)
+     ABR <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",ABR)
+     MAY <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",MAY)
+     JUN <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",JUN)
+     JUL <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",JUL)
+     AGO <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",AGO)
+     SEP <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",SEP)
+     OCT <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",OCT)
+     NOV <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",NOV)
+     DIC <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",DIC)
+     })
+
+# EDAD
+violencia.intrafamiliar.edad <- within(violencia.intrafamiliar.edad, {
+     MENOR.A.1 <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",MENOR.A.1)
+     X1.A.4 <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",X1.A.4)
+     X5.A.9 <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",X5.A.9)
+     X10.A.14 <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",X10.A.14)
+     X15.A.19 <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",X15.A.19)
+     X20.A.24 <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",X20.A.24)
+     X25.A.44 <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",X25.A.44)
+     X45.A.49 <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",X45.A.49)
+     X50.A.59 <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",X50.A.59)
+     X60.A.64 <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",X60.A.64)
+     X65.O.MAS <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",X65.O.MAS)
+     DESCONOCIDA <- gsub("[S.R.,S/R,N.A.,N/A]{1,}","NA",DESCONOCIDA)
+     })
+
+```
+
+
+##Convertimos a numerico los datos
+```{r Numeric, echo=FALSE, warning=FALSE}
+
+##FUENTE
+violencia.intrafamiliar.fuente <- within(violencia.intrafamiliar.fuente, {
+ SSA <- as.numeric(SSA)
+ IMSS.ORD <- as.numeric(IMSS.ORD)
+ ISSSTE <- as.numeric(ISSSTE)
+ IMSS.OP <- as.numeric(IMSS.OP)
+ DIF <- as.numeric(DIF)
+ PEMEX <- as.numeric(PEMEX)
+ SEDENA <- as.numeric(SEDENA)
+ SEMAR <- as.numeric(SEMAR)
+ OTRAS <- as.numeric(OTRAS)
+})
+
+##MES
+violencia.intrafamiliar.mes <- within(violencia.intrafamiliar.mes, {
+  ENE <- as.numeric(ENE)
+  FEB <- as.numeric(FEB)
+  MAR <- as.numeric(MAR)
+  ABR <- as.numeric(ABR)
+  MAY <- as.numeric(MAY)
+  JUN <- as.numeric(JUN)
+  JUL <- as.numeric(JUL)
+  AGO <- as.numeric(AGO)
+  SEP <- as.numeric(SEP)
+  OCT <- as.numeric(OCT)
+  NOV <- as.numeric(NOV)
+  DIC <- as.numeric(DIC)
+})
+
+##EDAD
+violencia.intrafamiliar.edad <- within(violencia.intrafamiliar.edad,{  
+ MENOR.A.1 <- as.numeric(MENOR.A.1)
+ X1.A.4 <- as.numeric(X1.A.4)
+ X5.A.9 <- as.numeric(X5.A.9)
+ X10.A.14 <- as.numeric(X10.A.14)
+ X15.A.19 <- as.numeric(X15.A.19)
+ X20.A.24 <- as.numeric(X20.A.24)
+ X25.A.44<- as.numeric(X25.A.44)
+ X45.A.49 <- as.numeric(X45.A.49)
+ X50.A.59 <- as.numeric(X50.A.59)
+ X60.A.64 <- as.numeric(X60.A.64)
+ X65.O.MAS<- as.numeric(X65.O.MAS)
+ DESCONOCIDA <- as.numeric(DESCONOCIDA)
+})
+
+```
+
+## Se introduce la columna TOTAL, que suma las columnas de cada fila.
+```{r ColumnaTotal}
+
+##FUENTE
+FUENTE <- violencia.intrafamiliar.fuente[,c(-1,-11,-12,-13)]
+violencia.intrafamiliar.fuente$TOTAL <- apply(FUENTE,1,function(x) sum(x, na.rm=TRUE))
+
+##MES
+MES <- violencia.intrafamiliar.mes[,c(-1,-2,-15,-16)]
+violencia.intrafamiliar.mes$TOTAL <- apply(MES,1,function(x) sum(x,na.rm=TRUE))
+
+##EDAD
+EDAD<-violencia.intrafamiliar.edad[,c(-1,-14,-15)]
+violencia.intrafamiliar.edad$TOTAL <- apply(EDAD,1,function(x) sum(x,na.rm=TRUE))
+
+```
+
+
+## Con los cambios anteriores, la estructura de las 3 bases de datos queda de la siguiente manera.
+
+*Reporte de casos de violencia por Fuente/Institucion*
+```{r, echo=FALSE}
+str(violencia.intrafamiliar.fuente)
+```
+
+*Reporte de casos de violencia por Grupo de Edad*
+```{r, echo=FALSE}
+str(violencia.intrafamiliar.edad)
+```
+
+*Reporte de casos de violencia por Mes*
+```{r, echo=FALSE}
+str(violencia.intrafamiliar.mes)
+```
+
+### Valores Faltantes
+
+Como primer control revisamos los valores faltantes en las tres bases de datos.
+
+*Registros Nulos violencia intrafamiliar Por Fuente/Institucion*
+```{r Registros Nulos Fuente, echo=FALSE}
+sum(is.na(violencia.intrafamiliar.fuente))
+```
+
+*Registros Nulos violencia intrafamiliar Por Edad*
+```{r Registros Nulos Edad, echo=FALSE}
+sum(is.na(violencia.intrafamiliar.edad))
+```
+
+*Registros Nulos violencia intrafamiliar Por Mes*
+```{r Registros Nulos Mes, echo=FALSE}
+sum(is.na(violencia.intrafamiliar.mes))
+```
+
+*Validacion Reporte Casos violencia  Por Fuente*
+```{r ValidacionFuente, echo=FALSE}
+mujeresf.periodo <-  aggregate(TOTAL~PERIODO,data=subset(violencia.intrafamiliar.fuente, SEXO=="Femenino"),sum) 
+colnames(mujeresf.periodo) <- c("Periodo","Femenino")
+
+hombresf.periodo <- aggregate(TOTAL~ PERIODO,data=subset(violencia.intrafamiliar.fuente, SEXO=="Masculino"),sum)
+colnames(hombresf.periodo) <- c("Periodo","Masculino")
+
+generalf.periodo <- aggregate(TOTAL~ PERIODO,data=subset(violencia.intrafamiliar.fuente, SEXO=="General"),sum)
+colnames(generalf.periodo) <- c("Periodo","General")
+
+#Se crearon 3 tablas con la suma de casos por periodo para los diferentes textos (femenino, masculino y general)
+verificacion.fuente <- merge(merge(generalf.periodo,hombresf.periodo),mujeresf.periodo)
+
+#Se juntan las 3 tablas en una sola
+verificacion.fuente$Validacion <- as.list(rowSums(subset(verificacion.fuente,TRUE,c(Masculino,Femenino)),na.rm=FALSE))
+
+#Se agrega una columna con la suma de la columna Femenino y Masculino
+save(verificacion.fuente,file="Validacion_Fuente.RData")
+
+#Se presenta la tabla creada
+verificacion.fuente
+```
+
+*Validacion Reporte Casos violencia  Por Mes*
+```{r VerificacionMes, echo=FALSE}
+mujeresm.periodo <-  aggregate(TOTAL~ PERIODO,data=subset(violencia.intrafamiliar.mes, SEXO=="Femenino"),sum)
+colnames(mujeresm.periodo) <- c("Periodo","Femenino")
+
+hombresm.periodo <- aggregate(TOTAL~ PERIODO,data=subset(violencia.intrafamiliar.mes, SEXO=="Masculino"),sum)
+colnames(hombresm.periodo) <- c("Periodo","Masculino")
+
+generalm.periodo <- aggregate(TOTAL~ PERIODO,data=subset(violencia.intrafamiliar.mes, SEXO=="General"),sum)
+colnames(generalm.periodo) <- c("Periodo","General")
+
+#Se crearon 3 tablas con la suma de casos por periodo para los diferentes textos (femenino, masculino y general)
+verificacion.mes <- merge(merge(generalm.periodo,hombresm.periodo),mujeresm.periodo)
+
+#Se juntan las 3 tablas en una sola
+verificacion.mes$Validacion <- as.list(rowSums(subset(verificacion.mes,TRUE,c(Masculino,Femenino)),na.rm=FALSE))
+
+#Se agrega una columna con la suma de la columna Femenino y Masculino
+save(verificacion.mes,file="Validacion_Mes.RData")
+
+#Se presenta la tabla creada
+verificacion.mes
+
+```
+
+*Validacion Reporte Casos violencia  Por Edad*
+
+```{r VerificacionEdad, echo=FALSE}
+
+mujerese.periodo <-  aggregate(TOTAL~ PERIODO,data=subset(violencia.intrafamiliar.edad, SEXO=="Femenino"),sum)
+colnames(mujerese.periodo) <- c("Periodo","Femenino")
+
+hombrese.periodo <- aggregate(TOTAL~ PERIODO,data=subset(violencia.intrafamiliar.edad, SEXO=="Masculino"),sum)
+colnames(hombrese.periodo) <- c("Periodo","Masculino")
+
+generale.periodo <- aggregate(TOTAL~ PERIODO,data=subset(violencia.intrafamiliar.edad, SEXO=="General"),sum)
+colnames(generale.periodo) <- c("Periodo","General")
+
+#Se crearon 3 tablas con la suma de casos por periodo para los diferentes textos (femenino, masculino y general)
+verificacion.edad <- merge(merge(generale.periodo,hombrese.periodo),mujerese.periodo)
+
+#Se juntan las 3 tablas en una sola
+verificacion.edad$Validacion <- as.list(rowSums(subset(verificacion.edad,TRUE,c(Masculino,Femenino)),na.rm=FALSE))
+
+#Se agrega una columna con la suma de la columna Femenino y Masculino
+save(verificacion.edad,file="Validacion_Edad.RData")
+
+#Se presenta la tabla creada
+verificacion.edad
+
+```
+
+### Resumen de los Datos
+```{r Resumen de los Datos, echo=FALSE}
+###FUENTE
+summary(violencia.intrafamiliar.fuente)
+
+###EDAD
+summary(violencia.intrafamiliar.edad)
+
+###MES
+summary(violencia.intrafamiliar.mes)
+```
+
+Aqui termina la limpieza principal de los datos
+
+```{r CambioFormato, echo=FALSE}
+library(reshape2)
+violencia.intrafamiliar.estado <- NULL
+violencia.intrafamiliar.fuente$TOTAL <- NULL
+violencia.intrafamiliar.edad$TOTAL <- NULL
+violencia.intrafamiliar.mes$TOTAL <- NULL
+
+#Cambiamos el formato a la base violencia.intrafamiliar.fuente
+
+violencia.intrafamiliar.FUENTE <- melt(data=violencia.intrafamiliar.fuente,id=c("ESTADO","PERIODO","SEXO"))
+names(violencia.intrafamiliar.FUENTE) <- c("ESTADO","PERIODO","SEXO","INSTITUCION","CASOS")
+
+save(violencia.intrafamiliar.FUENTE, file="violencia_FLargo_Fuente.RData")
+
+#Cambiamos el formato a la base violencia.intrafamiliar.mes
+
+violencia.intrafamiliar.MES <- melt(data=violencia.intrafamiliar.mes,id=c("ESTADO","PERIODO","SEXO"),na.rm=TRUE)
+names(violencia.intrafamiliar.MES) <- c("ESTADO","PERIODO","SEXO","MES","CASOS")
+
+save(violencia.intrafamiliar.MES, file="violencia_FLargo_Mes.RData")
+
+
+#Cambiamos el formato a la base violencia.intrafamiliar.edad
+
+violencia.intrafamiliar.EDAD <- melt(data=violencia.intrafamiliar.edad,id=c("ESTADO","PERIODO","SEXO"))
+names(violencia.intrafamiliar.EDAD) <- c("ESTADO","PERIODO","SEXO","EDAD","CASOS")
+
+save(violencia.intrafamiliar.EDAD,file="violencia_FLargo_Edad.RData")
+
+```
+
+
+```{r tipo de variables y extracto, echo=FALSE}
+##FUENTE
+str(violencia.intrafamiliar.FUENTE)
+head(violencia.intrafamiliar.FUENTE)
+
+##MES
+str(violencia.intrafamiliar.MES)
+head(violencia.intrafamiliar.MES)
+
+##EDAD
+str(violencia.intrafamiliar.EDAD)
+head(violencia.intrafamiliar.EDAD)
+```
+
+```{r TablaAuxFuente ,echo=FALSE}
+
+institucion.per <- NULL
+
+#Generamos la Tabla
+periodo <- c(2003:2014)
+for (i in 1:12){
+  institucion.per[[i]] <- as.list(colSums(subset(violencia.intrafamiliar.fuente,PERIODO==periodo[i] & SEXO=="General")[,2:10]),na.rm=TRUE)
+}
+
+names(institucion.per) <- periodo
+
+institucion.periodo <- ldply(institucion.per,data.frame)
+
+names(institucion.periodo) <- c("PERIODO","SSA","IMSS.ORD","ISSSTE","IMSS.OP","DIF","PEMEX","SEDENA","SEMAR","OTRAS")
+
+#La pasamos al formato largo
+
+INSTITUCION.PERIODO <- melt(institucion.periodo,id=c("PERIODO"))
+
+names(INSTITUCION.PERIODO) <- c("PERIODO","INSTITUCION","CASOS")
+
+save(INSTITUCION.PERIODO, file="Total de Casos Por Institucion.RData")
+
+INSTITUCION.PERIODO
+
+```
+
+Utilizando la tabla, se elabora la siguiente gr??fica, mostrando en ella la tendencia por del n??mero de incidentes reportado instituci??n , durante el periodo de observaci??n.
+
+```{r Grafica1Fuente, echo=FALSE}
+
+library(ggplot2)
+
+ggplot(INSTITUCION.PERIODO,aes(PERIODO,CASOS,group=INSTITUCION))+geom_line(aes(colour=INSTITUCION)) +facet_wrap(~INSTITUCION,ncol=3)+ geom_point(aes(colour=INSTITUCION))+labs(title="Casos reportados por institucion (2003-2014)",x="Periodo",y="Numero de casos")+theme_bw()+theme(axis.text.x=element_text(angle=90))+theme(legend.position="none",strip.text = element_text(face = "bold"),axis.text.x = element_text(size=15), axis.text.y = element_text(size=15),strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.ticks=element_line(colour=grey(.80)),axis.title = element_text(colour=grey(.45), size=12), plot.title = element_text(size =20))
+
+```
+
+###Instituci??n con Mayor N??mero de Reportes
+
+Utilizando la tabla anteriormente expuesta, se realizará la siguiente gr??fica, que muestra el n??mero total de reportes por instituci??n durante cada a??o, esto con el fin de identificar la instituci??n que genera un mayor n??mero de reportes en cada uno de los a??os de observaci??n.
+
+En esta tabla es f??cil ver que la instituci??n que recibe un mayor n??mero de reportes de violencia intrafamiliar  es la Secretar??a de Salud, siendo esta la que realiza un mayor n??mero de reportes por a??o.
+
+```{r Grafica2Fuente, echo=FALSE}
+
+ggplot(INSTITUCION.PERIODO,aes(x=INSTITUCION,y=CASOS,group=PERIODO,fill=INSTITUCION)) +geom_bar(stat="identity",aes(colour=INSTITUCION))+facet_wrap(~PERIODO,ncol=3)+theme_bw()+theme(axis.text.x=element_text(angle=90,size=5),strip.text = element_text(face = "bold"),strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.ticks=element_line(colour=grey(.80)),axis.text.x = element_text(size=15), axis.text.y = element_text(size=15),axis.title = element_text(colour=grey(.45)))+labs(title="Casos por Institucion reportados cada periodo",x="Institucion",y="Numero de Casos", plot.title = element_text(size =20))
+
+```
+
+
+###Tendencia Interanual N??mero de incidentes de violencia intrafamiliar
+
+Buscando identificar la ??poca del a??o en que se registra un mayor n??mero de incidentes de violencia domestica e identificar el comportamiento interanual que tiene el fen??meno se crea la siguiente tabla, ??sta muestra el n??mero total  de incidentes de violencia domestica por cada a??o dentro del periodo de observaci??n; la tabla fue creada utilizando los datos generales, para cada uno de los periodos, sumando el n??mero de incidentes reportado para las diferentes entidades.
+
+```{r CreacionTablaAuxiliarMes, echo=FALSE}
+
+mes.per <- NULL
+periodo <- c(2003:2014)
+
+#Generamos la tabla
+
+for (i in 1:12){
+  mes.per[[i]] <- as.list(colSums(subset(violencia.intrafamiliar.mes,PERIODO==periodo[i] & SEXO=="General")[,2:13]),na.rm=TRUE)
+}
+
+names(mes.per) <- periodo
+
+mes.periodo <- ldply(mes.per,data.frame)
+
+names(mes.periodo) <- c("Periodo","ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC")
+
+#Converitmos la tabla a formato largo
+MES.PERIODO <- melt(mes.periodo,id=c("Periodo"),na.rm=TRUE)
+
+#Renombramos variables
+names(MES.PERIODO) <- c("Periodo","Mes","No.incidentes")
+
+save(MES.PERIODO, file="Tendencia Interanual.RData")
+
+MES.PERIODO.ORDENADO <- MES.PERIODO[order(MES.PERIODO$No.incidentes), ]
+
+MES.PERIODO
+```
+
+Gr??ficamente presentamos la tendencia interanual, para cada uno de los a??os de observaci??n, de incidentes de violencia intrafamiliar en la siguiente gr??fica.
+
+```{r Grafica1Mes, echo=FALSE}
+
+ggplot(MES.PERIODO,aes(x=Mes,y=No.incidentes,group=Periodo))+geom_line(aes(colour=Periodo))+geom_point(aes(colour=Periodo),size=2.5)+facet_wrap(~Periodo,ncol=3)+theme_bw()+theme(strip.text = element_text(face = "bold"),strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.ticks=element_line(colour=grey(.80)),axis.title = element_text(colour=grey(.45)), axis.text.x = element_text(size=15, angle=45,vjust=.5), axis.text.y = element_text(size=15, angle=45),plot.title = element_text(size =20))+labs(title="Evolucion anual de los casos reportados de violencia intrafamiliar",x="Mes",y="Numero de incidentes")+theme(legend.position="none")+scale_x_discrete("Mes",labels=c("ENE"="Enero","FEB"="Febrero","MAR"="Marzo","ABR"="Abril","MAY"="Mayo","JUN"="Junio","JUL"="Julio","AGO"="Agosto","SEP"="Septiembre","OCT"="Octubre","NOV"="Noviembre","DIC"="Diciembre"))
+
+```
+
+###Tendencia Mensual vs Media Mensual (2003-2014)
+
+Considernado importante identificar la tendencia mensual del n??mero de incidentes reportadas durante los a??os de observaci??n y creyendo necesario identificar como referencia el n??mero promedio de incidentes reportado de manera mensual se crea la siguiente tabla generando el n??mero promedio de incidentes por mes.
+
+
+```{r Tabla Medias Mensual, echo=FALSE}
+
+#Creamos una tabla con las medias de cada mes
+
+media.mes.1 <- as.data.frame(sapply(mes.periodo[,2:13], function(x) mean(x, na.rm = TRUE)))
+media.mes.1$Mes <- c("ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC")
+names(media.mes.1) <- c("No.incidentes","Mes")
+
+save(media.mes.1, file="Promedio incidentes Mensual.RData")
+
+media.mes.1
+```
+
+En la siguiente gr??fica se presenta la tendencia mensual del n??mero total de incidentes a trav??s de los a??os de observaci??n, comparada con la media para el periodo identificada para cada mes.
+
+```{r Grafica2Mes, echo=FALSE}
+
+#grafica
+ggplot(MES.PERIODO,aes(x=Periodo,y=No.incidentes,group=Mes))+geom_line(aes(colour=Mes))+geom_point(aes(colour=Mes),size=2.5)+facet_wrap(~Mes,ncol=4)+theme_bw()+theme(strip.text = element_text(face = "bold"),strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.text.x = element_text(size=15, angle=45,vjust=.5),axis.text.y = element_text(size=15, angle=45),plot.title = element_text(size =20),axis.ticks=element_line(colour=grey(.80)),axis.title = element_text(colour=grey(.45)))+labs(title="Tendencia mensual por periodo de observacion comparada con la media del mes",x="Mes",y="Numero de incidentes")+theme(legend.position="none")+geom_hline(data=media.mes.1,aes(yintercept=No.incidentes,group=Mes),linetype=2)+ scale_colour_hue(h=c(180, 270))
+
+```
+
+Asimismo, utilizando la tabla generada que contiene el promedio de incidentes, mostramos los promedios mensuales de casos registrados.  
+
+```{r PromedioBarPlot, echo=FALSE}
+
+color.prom <- c(NA,NA,NA,NA,NA,NA,NA,NA,NA,"withcolor",NA,NA)
+
+ggplot(media.mes.1,aes(x=Mes,y=No.incidentes,fill=color.prom))+geom_bar(stat="identity")+theme_bw()+theme(strip.text = element_text(face = "bold"),strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.text.x = element_text(size=15, angle=45,vjust=.5),axis.text.y = element_text(size=15, angle=45),plot.title = element_text(size =20),axis.ticks=element_line(colour=grey(.80)),axis.title = element_text(colour=grey(.45)))+labs(title="Promedio Mensual de casos de violencia intrafamiliar",x="Mes",y="Numero de incidentes")+theme(legend.position="none")+xlim("ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC")
+
+
+```
+
+
+Podemos observar con la gr??fica anterior los meses en los que se presentan, en promedio, el mayor n??mero de casos es entre los meses de abril y junio, y alcanza su m??ximo en el mes de mayo. 
+
+Fijandonos en el mes de Mayo, veremos, en promedio, en que estado se presenta la mayor cantidad de casos registrados.
+
+###Mes Con Mayor N??mero de Reporte Por violencia intrafamiliar: Mayo
+
+Para observar el fen??meno de violencia intrafamiliares en el mes de octubre generamos la siguiente tabla, misma que contiene el n??mero promedio de violencia intrafamiliars por entidad durante el periodo de observaci??n para el mes de octubre
+
+```{r Promedios Octubre, echo=FALSE}
+
+library(reshape2)
+
+#Hacemos una tabla con el promedio de cada estado en el mes de octubre para el periodo de observacion (2003-2013)
+
+ESTADO.OCTUBRE.PROM <- acast(subset(violencia.intrafamiliar.MES,MES=="OCT" & SEXO=="General"), MES~ESTADO, function (x) mean(x, na.rm = TRUE))
+
+#Convertimos la tabla al formato largo
+ESTADO.OCTUBRE.PROM <- melt(ESTADO.OCTUBRE.PROM,id=c("MES"),variable.name="ESTADO")
+
+save(ESTADO.OCTUBRE.PROM, file="Promedios Entidad Para Octubre.RData")
+
+head(ESTADO.OCTUBRE.PROM, 15)
+
+```
+
+Gr??ficamente los promedios por entidad para el mes se octubre, se muestran como sigue
+
+```{r PromOctPorEstado, echo=FALSE}
+
+library(ggplot2)
+
+ggplot(ESTADO.OCTUBRE.PROM,aes(x=reorder(ESTADO.OCTUBRE.PROM$Var2,value),y=value,fill=Var1))+geom_bar(stat="identity")+theme_bw()+theme(strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.ticks=element_line(colour=grey(.80)),axis.text.x = element_text(size=12),axis.text.y = element_text(size=15, angle=45),plot.title = element_text(size =20),axis.title = element_text(colour=grey(.45)))+labs(title="Promedio por estado en el mes de octubre de los casos de violencia intrafamiliar",x="Estado",y="Numero de casos")+theme(legend.position="none")+coord_flip()+scale_fill_manual(values = c("skyblue3"))
+
+```
+
+
+###Comparaci??n N??mero Promedio Mensual de violencia intrafamiliar de Alcar??n, Hombres vs Mujeres
+
+Con el fin de identificar la tendencia mensual y diferencia entre el promedio mensual, para el periodo de observaci??n, de violencia intrafamiliars de alacr??n entre hombre y mujeres se realiza la siguiente tabla, en ??sta se muestran los promedios mensuales para el periodo de observaci??n, tanto para hombres como mujeres.
+
+```{r Promedios Genero, echo=FALSE}
+
+#Realizamos una tabla con la suma mensual de cada anio para cada sexo.
+#Para esto hacemos dos tablas: una para hombres y otra para mujeres; despues se consilidan
+
+#Tabla Promedio Mujeres
+mes.per.fem <- NULL
+periodo <- c(2003:2013)
+for (i in 1:11){
+  mes.per.fem[[i]] <- as.list(colSums((subset(violencia.intrafamiliar.mes,PERIODO==periodo[i] & SEXO=="Femenino"))[,3:14],na.rm=TRUE))
+}
+
+names(mes.per.fem) <- periodo
+
+mes.periodo.fem <- ldply(mes.per.fem,data.frame)
+
+names(mes.periodo.fem) <- c("Periodo","ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC")
+mes.periodo.fem$Sexo <- "Femenino"
+
+#Tabla Promedio Hombres
+mes.per.masc <- NULL
+periodo <- c(2003:2013)
+for (i in 1:11){
+  mes.per.masc[[i]] <- as.list(colSums((subset(violencia.intrafamiliar.mes,PERIODO==periodo[i] & SEXO=="Masculino"))[,3:14],na.rm=TRUE))
+}
+
+names(mes.per.masc) <- periodo
+
+mes.periodo.masc <- ldply(mes.per.masc,data.frame)
+
+names(mes.periodo.masc) <- c("Periodo","ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC")
+mes.periodo.masc$Sexo <- "Masculino"
+
+#Consolidaci??n de las tablas de hombres y mujeres en una sola tabla
+mes.periodo.sexo <- merge(mes.periodo.fem,mes.periodo.masc,all=TRUE)
+
+
+#La convertimos a la estructura de formato largo
+SEXO.MES <- melt(mes.periodo.sexo,id=c("Periodo","Sexo"))
+names(SEXO.MES) <- c("Periodo","Sexo","Mes","No.violencia intrafamiliars")
+
+#Creamos la tabla final con el promedio de cada sexo para cada mes de observacion y la convertimos a la estructura de formato largo
+
+
+prom.sexo.mes <- cast(SEXO.MES,Mes~Sexo,mean)
+PROM.SEXO.MENS <- melt(prom.sexo.mes,id=c("Mes"),variable.name="Sexo")
+
+save(PROM.SEXO.MENS, file="Promedios Mensuales por G??nero.RData")
+
+PROM.SEXO.MENS
+```
+
+Gr??ficamente los datos generados en la anterior tabla se muestran a continuaci??n, notemos que  ,en general, no se visualiza gran diferencia entre los casos registrados de hombres y de mujeres;a ligera diferencia entre los dos, se ubica,especialmente, entre los meses de febrero a junio.
+
+```{r CasosHombresMujeres, echo=FALSE}
+
+ggplot(PROM.SEXO.MENS,aes(x=Mes,y=value,group=Sexo))+geom_line(aes(colour=Sexo),linetype=2, size=1)+geom_point(aes(colour=Sexo),size=3)+theme_bw()+theme(strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.text.x = element_text(size=12),axis.text.y = element_text(size=15, angle=45),plot.title = element_text(size =20),axis.ticks=element_line(colour=grey(.80)),axis.title = element_text(colour=grey(.45)))+labs(title="Evolucion anual del numero de violencia intrafamiliar, en promedio, de hombre y mujeres",x="Mes",y="Numero de violencia intrafamiliar")
+
+```
+
+
+###Evoluci??n N??mero de violencia intrafamiliars Por Grupo de Edad
+
+Pretendiendo identificar la tendencia del n??mero promedio de violencia intrafamiliars reportado por grupo de edad definido, a trav??s del periodo de observaci??n, y considerando importan visualizar la tendencia, tanto para el g??nero masculino como femenino se genera la siguiente tabla. La que se genera obteniendo el promedio por grupo de edad para el genero masculino y femenino, as?? como para la categor??a general.
+
+ti```{r  Promedios Grupo Edad,echo=FALSE}
+
+library(tidyr)
+edad.violencia intrafamiliar.fem <- NULL
+edad.violencia intrafamiliar.mas <- NULL
+edad.violencia intrafamiliar.gen <- NULL
+
+#Obtenemos, para cada periodo, por genero, el promedio de casos de intoxicacion por violencia intrafamiliar de alacran; se realiza un subjconjunto de datos por periodo y sexo, posteriormente se obtiene la media por grupo para cada periodo y se guarda una lista de las medias.
+
+grupos <- c("Menor a 1","1 a 4","5 a 9", "10 a 14","15 a 19", "20 a 24","25 a 44", "45 a 49","50 a 59"," 60 a 64","64 o Mas","Desconocida")
+for (i in 1:11){
+  edad.violencia intrafamiliar.f<-subset(violencia intrafamiliar.alacran.edad, Periodo==periodo[i] & Sexo=="Femenino")
+  edad.violencia intrafamiliar.m<-subset(violencia intrafamiliar.alacran.edad, Periodo==periodo[i] & Sexo=="Masculino")
+  edad.violencia intrafamiliar.g <- subset(violencia intrafamiliar.alacran.edad, Periodo==periodo[i] & Sexo=="General")
+  
+  edad.violencia intrafamiliar.fem[[i]]<-as.list(sapply(edad.violencia intrafamiliar.f[2:13],mean))
+  edad.violencia intrafamiliar.mas[[i]]<-as.list(sapply(edad.violencia intrafamiliar.m[2:13],mean))
+  edad.violencia intrafamiliar.gen[[i]]<-as.list(sapply(edad.violencia intrafamiliar.g[2:13],mean))
+}
+
+#Consolidamos las listas con las medias para cada periodo, por genero.
+EDAD.violencia intrafamiliar.MEDIAFEM<- ldply(edad.violencia intrafamiliar.fem,data.frame)
+EDAD.violencia intrafamiliar.MEDIAMAS<- ldply(edad.violencia intrafamiliar.mas,data.frame)
+EDAD.violencia intrafamiliar.MEDIAGEN <- ldply(edad.violencia intrafamiliar.gen,data.frame)
+
+EDAD.violencia intrafamiliar.MEDIAFEM$Periodo<- factor(periodo)
+EDAD.violencia intrafamiliar.MEDIAMAS$Periodo<- factor(periodo)
+EDAD.violencia intrafamiliar.MEDIAGEN$Periodo<- factor(periodo)
+
+EDAD.violencia intrafamiliar.MEDIAFEM$Sexo<- factor("Femenino")
+EDAD.violencia intrafamiliar.MEDIAMAS$Sexo<- factor("Masculino")
+EDAD.violencia intrafamiliar.MEDIAGEN$Sexo<- factor("General")
+
+#Consolidamos las tablas para los generos y los datos generales en una sola tabla
+EDAD.violencia intrafamiliar.MEDIA<-rbind(EDAD.violencia intrafamiliar.MEDIAFEM,EDAD.violencia intrafamiliar.MEDIAMAS,EDAD.violencia intrafamiliar.MEDIAGEN)
+
+names(EDAD.violencia intrafamiliar.MEDIA) <- c("Menor a 1","1 a 4","5 a 9", "10 a 14","15 a 19", "20 a 24","25 a 44", "45 a 49","50 a 59"," 60 a 64","64 o Mas","Desconocida", "Periodo","Sexo")
+
+#Finalmente, cambiamos el formato de la tabla al formato largo
+
+EDAD.violencia intrafamiliar.MEDIA <- melt(EDAD.violencia intrafamiliar.MEDIA,id=c("Periodo","Sexo"),na.rm=TRUE)
+
+names(EDAD.violencia intrafamiliar.MEDIA) <- c("Periodo","Sexo","Grupo.Edad","Promedio.violencia intrafamiliars.Periodo")
+
+save(EDAD.violencia intrafamiliar.MEDIA, file="Promedios Por Grupo de Edad.RData")
+
+EDAD.violencia intrafamiliar.MEDIA
+```
+
+#Utilizando la tabla que se acaba de presentar se elabora la siguiente gr??fica. Notemos que en la gr??fica se puede observar existe un mayor n??mero promedio de violencia intrafamiliars en hombres en las edades tempranas hasta los 25 a??os, invirti??ndos esta tendencia hacia los 25 a??os, para igualrse el n??mero promedio de violencia intrafamiliars entre ambos g??neros, hacia las edades m??s avanzadas. Notemos que estos resultados son consistentes con las tendencias mensuales del promedio de violencia intrafamiliars presentados en la gr??fica anterior, en las cu??les registra un mayor n??mero de violencia intrafamiliars en mujeres.
+
+```{r Tendencia,echo=FALSE}
+
+intervalos <- 1:14
+
+intervalos <-200*intervalos 
+ggplot(EDAD.violencia intrafamiliar.MEDIA,aes(x=Periodo,y=Promedio.violencia intrafamiliars.Periodo,group=Sexo))+geom_line(aes(colour=Sexo), size=1,alpha=.5)+geom_point(aes(colour=Sexo),size=3,)+facet_wrap(~Grupo.Edad,ncol=6)+theme_bw()+theme(strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.text.x = element_text(size=15, angle = 45,vjust=.7,hjust=1),axis.text.y = element_text(size=15),plot.title = element_text(size =20), axis.ticks=element_line(colour=grey(.80)),axis.title = element_text(colour=grey(.45)))+labs(title="Evolucion Numero de violencia intrafamiliars, en promedio-hombre,mujeres y general-,Por Grupo de Edad (En A??os)",x="Periodo",y="Promedio violencia intrafamiliars")+scale_y_continuous(breaks=intervalos)
+```
+
+###Promedios Anuales Por Grupo de Edad
+
+A continuaci??n se elabora una tabla que presenta el n??mero de casos totales de violencia intrafamiliar de alcar??n, por periodo para cada uno de los grupos de edad definidos, tanto para el g??nero masculino, como para el g??nero femenino ; esta tabla fue creada sumando el n??mero de violencia intrafamiliars reportado en cada a??o, para las distintas entidades del pa??s, por grupo de edad.
+```{r Auxiliar, echo=FALSE}
+
+#Elaboramos una lista con la suma de los casos totales para cada periodo, tanto para el genero masculino, como para el genero femenino.
+for(i in 1:11){
+  edad.violencia.f<-subset(violencia.intrafamiliar.edad, PERIODO==periodo[i] & SEXO=="Femenino")
+  edad.violencia.m<-subset(violencia.intrafamiliar.edad, PERIODO==periodo[i] & SEXO=="Masculino")
+  
+  edad.violencia.fem[[i]]<-as.list(sapply(edad.violencia.f[2:13],sum))
+  edad.violencia.mas[[i]]<-as.list(sapply(edad.violencia.m[2:13],sum))
+}
+
+
+EDAD.violencia.SUMFEM<- ldply(edad.violencia.fem,data.frame)
+EDAD.violencia.SUMMAS<- ldply(edad.violencia.mas,data.frame)
+
+#A??adidmos la variable periodo y sexo a la tabla generada
+EDAD.violencia.SUMFEM$Periodo<- factor(periodo)
+EDAD.violencia.SUMMAS$Periodo<- factor(periodo)
+
+
+EDAD.violencia.SUMFEM$Sexo<- factor("Femenino")
+EDAD.violencia.SUMMAS$Sexo<- factor("Masculino")
+
+#Consolidamos las tablas creadas para el genero masculino y femenino en una sola tabla
+EDAD.violencia.SUMA<-rbind(EDAD.violencia.SUMFEM,EDAD.violencia.SUMMAS)
+
+names(EDAD.violencia.SUMA)<- c("Menor a 1","1 a 4","5 a 9", "10 a 14","15 a 19", "20 a 24","25 a 44", "45 a 49","50 a 59"," 60 a 64","64 o Mas","Desconocida", "Periodo","Sexo")
+
+#Cambiamos la tabla consolidada al formato largo
+EDAD.violencia.SUMA <- melt(EDAD.violencia.SUMA,id=c("Periodo","Sexo"),na.rm=TRUE)
+
+names(EDAD.violencia.SUMA) <- c("Periodo","Sexo","Grupo.Edad","Casos.Total.Periodo")
+
+save(EDAD.violencia.SUMA, file="Casos Totales Por Grupo de Edad.RData")
+
+EDAD.violencia.SUMA
+```
+
+A partir de la tabla anterior se genera el promedio anual de violencia intrafamiliars, utilizando para ello los casos totales obtenidos anteriormente para los distintos grupos de edades, tanto para el g??nero femenino, como para el g??nero masculino.
+
+El n??mero promedio anual de violencia intrafamiliars obtenido a partir del n??mero de violencia intrafamiliars registrado por periodo para los distintos grupos de edad, en el caso masculino, se presenta a continuaci??n:
+
+```{r Media Agregada Hombres, echo=FALSE}
+
+#Generamos los promedios anuales para el genero masculino
+Media.EdadMas <- NULL
+
+for(i in 1:11){
+  prom <- subset(EDAD.violencia.SUMA, SEXO=="Masculino" & PERIODO==periodo[i])
+  Media.EdadMas[[i]] <-c(mean(prom$violencia.Total.Periodo),periodo[i]) 
+}
+
+Media.EdadMas <- ldply(Media.EdadMas)
+names(Media.EdadMas)<-c("Media.Agregada","Periodo")
+
+save(Media.EdadMas, file="Numero Promedio Anual violencia Hombres.RData")
+
+Media.EdadMas
+```
+
+Mientras que para el g??nero femenino los promedios son los siguientes.
+
+```{r Media Agregada Mujeres, echo=FALSE}
+
+#Generamos los promedios anuales para el genero femenino
+Media.EdadFem <- NULL
+for(i in 1:11){
+  prom <- subset(EDAD.violencia.SUMA, SEXO=="Femenino" & PERIODO==periodo[i])
+  Media.EdadFem[[i]] <-c(mean(prom$violencia.Total.Periodo),periodo[i]) 
+}
+Media.EdadFem <- ldply(Media.EdadFem)
+names(Media.EdadFem)<-c("Media.Agregada","Periodo")
+
+save(Media.EdadFem, file="Numero Promedio Anual violencia Mujer.RData")
+
+Media.EdadFem
+
+```
+A partir de las dos ??ltimas dos tablas generadas se generan las siguientes gr??ficas, mostrando en ellas el n??mero total de violencia intrafamiliar registradas por grupo de edad para cada a??o dentro del periodo de observaci??n y, como referencia, el promedio de violencia intrafamiliars anual obtenido; tanto para el g??nero masculino, como para el g??nero femenino.  
+
+```{r Piramide,echo=FALSE}
+
+mybreaks <- 1:13
+mybreaks <- 4000*mybreaks
+
+suma.mas <- subset(EDAD.violencia.SUMA, Sexo=="Masculino")
+
+ggplot(suma.mas,aes(x=Grupo.Edad ,y=violencia.Total.Periodo, fill="blue"))+geom_bar(data=suma.mas,stat="identity")+geom_hline(data=Media.EdadMas,aes(yintercept=Media.Agregada,group=PERIODO),linetype=2)+facet_wrap(~PERIODO,ncol=4)+theme_bw()+theme(strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.text.x = element_text(angle = 45,vjust=1,hjust=1,size=10),axis.text.y = element_text(size=15), plot.title = element_text(size =20),axis.ticks=element_line(colour=grey(.80)),axis.title = element_text(colour=grey(.45)))+labs(title="Numero de Casos Total por Grupo de Edad Anual vs Promedio Anual (Hombres)",x="Grupo de Edad",y="Numero de Casos")+theme(legend.position="none")+coord_flip()+scale_fill_manual(values = c("skyblue3"))+scale_y_continuous(breaks= mybreaks)
+
+```
+
+```{r PiramideFem, echo=FALSE}
+#Mujeres
+suma.fem <- subset(EDAD.violencia.SUMA, SEXO=="Femenino")
+
+ggplot(suma.mas,aes(x=Grupo.Edad ,y=violencia.Total.Periodo, fill="pink"))+geom_bar(data=suma.fem,stat="identity")+geom_hline(data=Media.EdadFem,aes(yintercept=Media.Agregada,group=PERIODO),linetype=2)+facet_wrap(~PERIODO,ncol=4)+theme_bw()+theme(strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.text.x = element_text(angle = 45,vjust=1,hjust=1,size=15),axis.text.y = element_text(size=15),plot.title = element_text(size =20),axis.ticks=element_line(colour=grey(.80)),axis.title = element_text(colour=grey(.45)))+labs(title="Numero de Casos por Grupo de Edad Anual vs Promedio Anual (Mujeres)",x="Grupo de Edad",y="No. Total de violencia intrafamiliars")+theme(legend.position="none")+coord_flip()+scale_fill_manual(values = c("pink"))+scale_y_continuous(breaks= mybreaks)
+```
+
+Las ??ltimas tres gr??ficas muestran, claramente, el grupo de edad con mayor vulnerabilidad a violencia intrafamiliar de alacranes es el abarcado entre los 25 y 40 a??os de edad.
+
+####Grupo de Mayor Vulnerabilidad: 25 a 44 a??os
+Para comprobar nuestra hip??tesis de considerar al grupo abarcado entre los 25 y 40 a??os de edad como el grupo vulnerable se genera a continuaci??n una tabla que muestra el n??mero de violencia intrafamiliar promedio registrado por grupo de edad, datos que es generado a partir de los datos generales.
+
+```{r Medias Grupo de Edad, echo=FALSE}
+MEDIA.GRUPOS <- NULL
+for(i in 1:12){
+  media.edad <- subset(violencia.intrafamiliar.EDAD, SEXO=="General" & Grupo.de.Edad== grupos[[i]])
+  MEDIA.GRUPOS[[i]]<-c(mean(media.edad$no.Casos),grupos[[i]])
+}
+
+  MEDIA.GRUPOS<-ldply(MEDIA.GRUPOS)
+
+  names(MEDIA.GRUPOS)<-c("Promedio.Casos", "Grupo.de.Edad")
+
+  MEDIA.GRUPOS$Promedio.Casos<-as.numeric(MEDIA.GRUPOS$Promedio.Casos)
+save(MEDIA.GRUPOS, file="Promedio Casos Grupo Edad.RData")
+```
+
+De la tabla anterior se obtiene la siguiente gr??fica confirmando nuestra hip??stesis.
+
+
+```{r TablaMed,echo=FALSE}
+color.prom <- c(NA,NA,NA,NA,NA,NA,"withcolor",NA,NA,NA,NA,NA)
+
+ggplot(MEDIA.GRUPOS,aes(x=Grupo.de.Edad,y=Promedio.Casos,fill=color.prom))+geom_bar(stat="identity")+labs(title="Promedio Mensual de casos de violencia",x="Grupo de Edad",y="Numero de Casos")+theme_bw()+theme(strip.text = element_text(face = "bold"),strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.text.x = element_text(size=15, angle=45, vjust=.5),axis.text.y = element_text(size=15, angle=45),plot.title = element_text(size =20),axis.ticks=element_line(colour=grey(.80)),axis.title = element_text(colour=grey(.45)))+theme(legend.position="none")
+```
+
+Ahora, para analizar el fen??meno de violencia intrafamiliar sobre el grupo vulnerable , 25 a 44 a??os, se realiza una tabla generando por estado el n??mero promedio de violencia intrafamiliar para cada Estado
+
+```{r TablaMediaEstEdad,echo=FALSE}
+library(reshape)
+
+#Hacemos una tabla con el promedio de cada estado para el grupo vulnerable durante el periodo de observacion (2003-2013)
+
+Edad.prom <- cast(subset(violencia.intrafamiliar.EDAD,Grupo.de.Edad=="25 a 44" & SEXO=="General"), Grupo.de.Edad~ESTADO, mean)
+
+#Convertimos la tabla al formato largo
+EDAD.PROM.VULNERABLE <- melt(Edad.prom,id=c("Grupo.de.Edad"),variable.name="Estado")
+
+save(EDAD.PROM.VULNERABLE, file="Promedios Grupo de Edad 25 a 44 anos.RData")
+
+EDAD.PROM.VULNERABLE
+```
+
+Gr??ficamente el fen??meno del n??mero promedio de violencia intrafamiliar por entidad se muestra como sigue:
+
+```{r PromGrupoVulnerable, echo=FALSE}
+
+ggplot(EDAD.PROM.VULNERABLE,aes(x=reorder(ESTADO,value),y=value,fill=Grupo.de.Edad))+geom_bar(stat="identity")+theme_bw()+theme(strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.ticks=element_line(colour=grey(.80)),axis.text.x = element_text(size=12),axis.text.y = element_text(size=15, angle=45),plot.title = element_text(size =20),axis.title = element_text(colour=grey(.45)))+labs(title="Promedio por estado del grupo de 25 a 44 a??os, de los casos de violencia intrafamiliar",x="Estado",y="Numero de casos")+theme(legend.position="none")+coord_flip()+scale_fill_manual(values = c("green"))
+
+```
+
+###Animaci??n N??mero Total de violencia intrafamiliar por Grupo de Edad 
+Finalmente si se quiere observar el comportamiento del n??mero total de violencia intrafamiliar por grupo de edad ,reportado para hombres y mujeres, para las 16 entidades con mayor n??mero de violencia intrafamiliar, puede observarse la siguiente animaci??n https://www.dropbox.com/lightbox/home/Actuar%C3%ADa/Estad%C3%ADstica . En esta animaci??n cada escal??n representa un grupo de edad, ordenados en orden ascendiente, la pir??mide azul respresenta el n??mero total de violencia intrafamiliars por grupo de edad para hombres, mientras que para mujeres utiliza el color rosa.
+
+```{r Graficas Gif, echo=FALSE }
+entidades <- c("Aguascalientes", "Colima", "Durango", "Guanajuato","Guerrero", "Jalisco", "Mexico", "Michoacan", "Morelos","Nayarit", "Oaxaca", "Puebla", "Queretaro", "Sinaloa", "Sonora", "Zacatecas")
+j <- 1:11
+for(k in 1:11){
+  
+png(file=paste("Caso",2002+k,".png", sep=""), width=900,height=700, bg="white", units="px")
+
+par(mfrow = c(4,4), mar = c(0, 0, 1, 0), oma = c(0, 0, 1.2, 0))
+
+for(i in 1:16){
+    
+with(violencia.intrafamiliar.edad, plot(0, 0, type = "n", xlab ="", ylab = "", axes = FALSE,xlim=c(-50,50),ylim=c(0,12), bty="n", cex.main = 1.5, main = entidades[i]))
+
+anio <- subset(violencia.intrafamiliar.edad,PERIODO== periodo[[k]])
+
+hombres<-subset(anio,SEXO=="Masculino" & ESTADO==entidades[i])
+mujeres <- subset(anio,SEXO=="Femenino" & ESTADO==entidades[i])
+
+pob.mujeres <- .01*mujeres[2:12]
+pob.hombres <- -.01*hombres[2:12]
+
+rect(0,j,pob.mujeres,j-1, col="pink", border="white")
+rect(0,j,pob.hombres,j-1, col="blue", border="white")
+}
+
+mtext(paste0(periodo[k], " violencia Por Grupo de Edad (Hombres, Mujeres)"), side = 3, outer = TRUE, cex=1)
+dev.off()
+}
+```
+
+###Entidad con Mayor N??mero de Reportes por Grupo de Edad
+
+Con el fin de identificar la entidad que presenta un mayor n??mero de reportes en promedio se realiz?? un boxplot para las 32 entidades utilizando la informaci??n reportada para la categor??a general,mismo que no se expone por cuestioness visuales; sin embargo a partir de dicho boxplot se pudo obtener que los estados que presentan un mayor promedio de violencia intrafamiliars por grupo de edad son los que se presentan en el siguiente boxplot, en este se presentan las 6 entidades con un mayor promedio de reportes. Para la realizaci??n de este ??ltimo boxplot se eliminan los "outliers"
+
+```{r Exploratoria, echo=FALSE}
+
+f <- function(x) {
+  t <- quantile(x, probs = c(0.0, 0.25, 0.5, 0.75))
+  s <- 2.5*t[[4]]-1.5*t[[2]]   ##Prueba Outliers
+   r<-c(t,s) 
+  
+  names(r) <- c("ymin", "lower", "middle", "upper", "ymax")
+  r
+}
+
+png(file="Boxplot.png",width=1200,height=800, bg="transparent", units="px")
+
+ggplot(subset(violencia.intrafamiliar.EDAD,Sexo=="General"), aes(x = Grupo.de.Edad, y = No.Casos,fill=Grupo.de.Edad)) +stat_summary(fun.data = f, geom="boxplot")+facet_wrap(~ESTADO,ncol=4)+ labs(title = "Boxplots por pais (norte a sur), mayores a 6 grados (ultimos 50 anos)", x = "Pais", y = "Magnitud") +theme_bw()+theme(strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.text.x = element_text(angle = 45,vjust=.5,hjust=1),axis.ticks=element_line(colour=grey(.80)),axis.title = element_text(colour=grey(.45)))+ guides(fill = FALSE)
+
+dev.off()
+
+```
+
+
+```{r Boxplot, echo=FALSE}
+
+f <- function(x) {
+  t <- quantile(x, probs = c(0.0, 0.25, 0.5, 0.75))
+  s <- 2.5*t[[4]]-1.5*t[[2]]   ##Prueba Outliers
+   r<-c(t,s) 
+  
+  names(r) <- c("ymin", "lower", "middle", "upper", "ymax")
+  r
+}
+
+
+estados.mayor.ocurrencia <- subset(violencia.intrafamiliar.EDAD,SEXO=="General" & ESTADO %in% c("Guerrero","Guanajuato","Jalisco","Morelos","Michoacan","Nayarit"))
+
+
+ggplot(estados.mayor.ocurrencia, aes(x = Grupo.de.Edad, y = No.Casos,fill=Grupo.de.Edad)) +stat_summary(fun.data = f, geom="boxplot")+facet_wrap(~Estado,ncol=3)+ labs(title = "Boxplots por pais (norte a sur), mayores a 6 grados (ultimos 50 anos)", x = "Pais", y = "Magnitud") +theme_bw()+theme(strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.text.y = element_text(size=15),axis.text.x = element_text(angle = 45,vjust=.2,hjust=1, size=15),plot.title = element_text(size =20), axis.ticks=element_line(colour=grey(.80)),axis.title = element_text(colour=grey(.45)))+ guides(fill = FALSE)
+
+```
+
+###Estado Con Mayor N??mero de violencia intrafamiliar
+
+Hasta ahora,las gr??ficas y tablas en que se ha involucrado a la variable entidad, muestran al estado de Jalisco como un potencial candidato a ser la entidad con un mayor n??mero de violencia intrafamiliar reportado, para comprobar si esto es as?? se genera la siguiente tabla. En esta tabla se presenta el n??mero promedio de violencia intrafamiliar totales por estado para el periodo de observaci??n, se genera con los datos la base violencia.intrafamiliar.FUENTE.
+
+```{r Medias Estado, echo=FALSE}
+MEDIA.ENTIDAD <- NULL
+entidades <- c("Aguascalientes", "Baja California", "Baja California Sur","Campeche", "Chiapas", "Chihuahua","Coahuila", "Colima", "Distrito Federal", "Durango", "Guanajuato","Guerrero", "Hidalgo", "Jalisco", "Mexico", "Michoacan", "Morelos","Nayarit","Nuevo Leon", "Oaxaca", "Puebla", "Queretaro","Quintana Roo","San Luis Potosi", "Sinaloa", "Sonora", "Tabasco", "Tamaulipas", "Tlaxcala","Veracruz","Yucatan", "Zacatecas")
+for(i in 1:32){
+  media.entidad <- subset(violencia.intrafamiliar.FUENTE, SEXO=="General" & ESTADO== entidades[i])
+  MEDIA.ENTIDAD[[i]]<-c(mean(media.entidad$No.Casos, na.rm=TRUE),entidades[[i]])
+}
+
+  MEDIA.ENTIDAD<-ldply(MEDIA.ENTIDAD)
+
+  names(MEDIA.ENTIDAD)<-c("Promedio.Casos", "Estado")
+
+  MEDIA.ENTIDAD$Promedio.Casos<-as.numeric(MEDIA.ENTIDAD$Promedio.Casos)
+
+save(MEDIA.ENTIDAD, file="Promedio Casos Entidad.RData")
+
+MEDIA.ENTIDAD
+```
+
+Gr??ficamente la tabla anterior se muestra como sigue:
+
+```{r TablaMediaEntidad, echo=FALSE}
+color.prom <- c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,"withcolor",NA,NA,NA,NA,NA, NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
+
+ggplot(MEDIA.ENTIDAD,aes(x=Estado,y=Promedio.Casos,fill=color.prom))+geom_bar(stat="identity")+labs(title="Promedio Por Entidad de casos de violencia intrafamiliar",x="Estado",y="Numero de Casos")+theme_bw()+theme(strip.text = element_text(face = "bold"),strip.background = element_blank(),axis.text = element_text(colour=grey(.50)),axis.text.x = element_text(size=15, angle=45, vjust=.5),axis.text.y = element_text(size=15, angle=45),plot.title = element_text(size =20),axis.ticks=element_line(colour=grey(.80)),axis.title = element_text(colour=grey(.45)))+theme(legend.position="none")
+```
+
+```{r ChisteSecreto, echo = FALSE}
+
+# What's purple, round and doesn't go to work?
+
+# A non-abelian grape (it doesn't commute)
+
+```
+

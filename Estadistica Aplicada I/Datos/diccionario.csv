@@ -1,0 +1,5 @@
+Variable,ESTADO,FUENTE,EDAD,MES,TOTAL ,SEXO ,PERIODO
+Descripcion,Nombre del estado en el que se reportan los casos de violencia intrafamiliar,Numero de casos reportados en cada institucion,Numero de casos reportados en cada grupo de edad,Numero de casos reportados en cada mes,Numero total de casos reportados en cada estado,Sexo de las victimas de violencia intrafamiliar,A¤o de los reportes de violencia intrafamiliar
+Tipo,Cualitativo,Cuantitativo discreto,Cuantitativo discreto,Cuantitativo discreto,Cuantitativo discreto,Cualitativo,Cualitativo
+De la recoleccion de datos: los datos fueron proporcionados por nuestros compañeros de clase
+De las unidades de datos: no hay una escala especial para los datos en este proyecto

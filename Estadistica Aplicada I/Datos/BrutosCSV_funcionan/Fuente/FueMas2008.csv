@@ -1,0 +1,34 @@
+Estado ,SALUD ,IMSS-ORD ,ISSSTE ,IMSS-OP ,DIF ,PEMEX ,SEDENA ,SEMAR ,Otras ,Total
+Aguascalientes ,  8 ,  0 ,  0 ,N.A. ,  0 ,N.A. ,  0 ,N.A. ,  0 ,  8
+Baja California ,  17 ,  1 ,  0 ,  0 ,N.A. ,N.A. ,  0 ,  0 ,  9 ,  27
+Baja California Sur ,  12 ,  0 ,  0 ,N.A. ,N.A. ,N.A. ,  0 ,  0 ,N.A. ,  12
+Campeche ,  381 ,  0 ,  0 ,  1 ,  0 ,  0 ,  0 ,  0 ,  17 ,  399
+Coahuila ,  13 ,  0 ,  1 ,  0 ,  0 ,N.A. ,  0 ,N.A. ,  3 ,  17
+Colima ,  17 ,  0 ,  1 ,N.A. ,  0 ,N.A. ,  0 ,  0 ,  1 ,  19
+Chiapas ,  47 ,  0 ,  12 ,  2 ,N.A. ,  0 ,  0 ,  1 ,  0 ,  62
+Chihuahua ,  617 ,  6 ,  0 ,  7 ,N.A. ,N.A. ,  0 ,N.A. ,  3 ,  633
+Distrito Federal ,  108 ,  0 ,  60 ,  0 ,  0 ,  0 ,  6 ,  0 ,  0 ,  174
+Durango ,  25 ,  0 ,  0 ,  3 ,  0 ,N.A. ,  0 ,N.A. ,  0 ,  28
+Guanajuato ,  91 ,  0 ,  0 ,  0 ,N.A. ,  1 ,  3 ,N.A. ,  1 ,  96
+Guerrero ,  77 ,  0 ,  3 ,  0 ,N.A. ,N.A. ,  1 ,  0 ,N.A. ,  81
+Hidalgo ,  237 ,  0 ,  1 ,  0 ,  19 ,  0 ,  0 ,N.A. ,  0 ,  257
+Jalisco ,  166 ,  0 ,  0 ,  0 ,  9 ,  0 ,  0 ,  0 ,  506 ,  681
+México ,  62 ,  3 ,  1 ,  0 ,  180 ,N.A. ,  1 ,N.A. ,  0 ,  247
+Michoacán ,  97 ,  1 ,  0 ,  9 ,N.A. ,N.A. ,  0 ,  0 ,N.A. ,  107
+Morelos ,  21 ,  0 ,  0 ,  0 ,N.A. ,N.A. ,  0 ,N.A. ,N.A. ,  21
+Nayarit ,  191 ,  0 ,  1 ,  3 ,  0 ,N.A. ,  0 ,  0 ,  4 ,  199
+Nuevo León ,  167 ,  1 ,  0 ,  0 ,N.A. ,  0 ,  0 ,N.A. ,  10 ,  178
+Oaxaca ,  74 ,  0 ,  3 ,  3 ,  15 ,  7 ,  0 ,  1 ,  1 ,  104
+Puebla ,  62 ,  0 ,  0 ,  4 ,  0 ,  0 ,  0 ,N.A. ,  15 ,  81
+Querétaro ,  192 ,  0 ,  0 ,  0 ,  0 ,N.A. ,  0 ,N.A. ,  0 ,  192
+Quintana Roo ,  54 ,  1 ,  3 ,N.A. ,N.A. ,N.A. ,  0 ,  1 ,N.A. ,  59
+San Luis Potosí ,  24 ,  1 ,  0 ,  2 ,N.A. ,  0 ,  0 ,N.A. ,  2 ,  29
+Sinaloa ,  46 ,  0 ,  0 ,  4 ,  45 ,  0 ,  0 ,  0 ,  2 ,  97
+Sonora ,  66 ,  0 ,  0 ,  0 ,N.A. ,N.A. ,  0 ,  0 ,  0 ,  66
+Tabasco ,  50 ,  0 ,  3 ,N.A. ,N.A. ,  0 ,  0 ,  0 ,  4 ,  57
+Tamaulipas ,  5 ,  1 ,  0 ,  1 ,  1 ,  0 ,  0 ,  0 ,  0 ,  8
+Tlaxcala ,  12 ,  0 ,  0 ,  0 ,  0 ,N.A. ,  0 ,N.A. ,  0 ,  12
+Veracruz ,  74 ,  0 ,  1 ,  6 ,  0 ,  0 ,  0 ,  0 ,N.A. ,  81
+Yucatán ,  36 ,  0 ,  0 ,  8 ,  0 ,N.A. ,  0 ,  0 ,  0 ,  44
+Zacatecas ,  74 ,  0 ,  0 ,  2 ,  0 ,N.A. ,  0 ,N.A. ,  0 ,  76
+TOTAL GLOBAL , 3 123 ,  15 ,  90 ,  55 ,  269 ,  8 ,  11 ,  3 ,  578 , 4 152

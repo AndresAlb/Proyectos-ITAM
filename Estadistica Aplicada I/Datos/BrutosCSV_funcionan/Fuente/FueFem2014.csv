@@ -1,0 +1,34 @@
+Estado ,Salud ,IMSS-ORD ,ISSSTE ,IMSS-OP ,DIF ,PEMEX ,SEDENA ,SEMAR ,Otras ,Total
+Aguascalientes ,  114 ,  0 ,  1 ,S/R ,  0 ,S/R ,  0 ,S/R ,  2 ,  117
+Baja California ,  262 ,  0 ,  0 ,  3 ,S/R ,S/R ,  0 ,  1 ,  47 ,  313
+Baja California Sur ,  111 ,  1 ,  0 ,S/R ,S/R ,S/R ,  8 ,  0 ,S/R ,  120
+Campeche , 1 277 ,  0 ,  0 ,  7 ,  0 ,  0 ,  0 ,  0 ,  1 , 1 285
+Coahuila ,  49 ,  2 ,  12 ,  20 ,  0 ,S/R ,  1 ,S/R ,  41 ,  125
+Colima ,  30 ,  0 ,  0 ,S/R ,  0 ,S/R ,  0 ,  0 ,  1 ,  31
+Chiapas ,  447 ,  2 ,  15 ,  25 ,S/R ,  0 ,  4 ,  0 ,  0 ,  493
+Chihuahua , 1 657 ,  16 ,  1 ,  46 ,S/R ,S/R ,  1 ,S/R ,  5 , 1 726
+Distrito Federal ,  570 ,  0 ,  112 ,  3 ,  0 ,  0 ,  67 ,  0 ,  0 ,  752
+Durango ,  188 ,  0 ,  3 ,  6 ,  0 ,S/R ,  1 ,S/R ,  0 ,  198
+Guanajuato , 2 298 ,  0 ,  3 ,  0 ,S/R ,  17 ,  1 ,S/R ,  4 , 2 323
+Guerrero ,  271 ,  3 ,  7 ,  2 ,S/R ,S/R ,  0 ,  0 ,S/R ,  283
+Hidalgo , 1 369 ,  0 ,  0 ,  11 ,  21 ,  0 ,  0 ,S/R ,  0 , 1 401
+Jalisco ,  431 ,  8 ,  0 ,  0 ,  6 ,  0 ,  1 ,  0 , 1 488 , 1 934
+México ,  221 ,  1 ,  2 ,  0 ,  195 ,S/R ,  4 ,S/R ,  9 ,  432
+Michoacán , 1 404 ,  4 ,  0 ,  36 ,S/R ,S/R ,  0 ,  0 ,S/R , 1 444
+Morelos ,  314 ,  4 ,  3 ,  0 ,S/R ,S/R ,  0 ,S/R ,S/R ,  321
+Nayarit ,  916 ,  1 ,  0 ,  7 ,  28 ,S/R ,  0 ,  0 ,  1 ,  953
+Nuevo León ,  723 ,  2 ,  2 ,  0 ,S/R ,  1 ,  0 ,S/R ,  168 ,  896
+Oaxaca ,  672 ,  2 ,  4 ,  69 ,  5 ,  0 ,  1 ,  1 ,  3 ,  757
+Puebla ,  510 ,  4 ,  1 ,  36 ,  0 ,  0 ,  3 ,S/R ,  17 ,  571
+Querétaro , 4 041 ,  1 ,  0 ,  0 ,  1 ,S/R ,  0 ,S/R ,  0 , 4 043
+Quintana Roo ,  175 ,  1 ,  35 ,S/R ,S/R ,S/R ,  1 ,  0 ,S/R ,  212
+San Luis Potosí ,  184 ,  5 ,  1 ,  15 ,S/R ,  0 ,  0 ,S/R ,  6 ,  211
+Sinaloa ,  149 ,  2 ,  0 ,  10 ,  78 ,  0 ,  0 ,  0 ,  5 ,  244
+Sonora ,  146 ,  4 ,  0 ,  0 ,S/R ,S/R ,  1 ,  0 ,  9 ,  160
+Tabasco , 1 165 ,  0 ,  1 ,S/R ,S/R ,  4 ,  1 ,  0 ,  5 , 1 176
+Tamaulipas ,  553 ,  3 ,  0 ,  1 ,  55 ,  0 ,  2 ,  0 ,  2 ,  616
+Tlaxcala ,  257 ,  0 ,  0 ,  0 ,  0 ,S/R ,  1 ,S/R ,  0 ,  258
+Veracruz ,  401 ,  2 ,  1 ,  28 ,  0 ,  2 ,  0 ,  5 ,S/R ,  439
+Yucatán , 1 305 ,  1 ,  1 ,  28 ,  0 ,S/R ,  0 ,  0 ,  2 , 1 337
+Zacatecas , 1 198 ,  0 ,  2 ,  4 ,  0 ,S/R ,  0 ,S/R ,  2 , 1 206
+TOTAL GLOBAL , 23 408 ,  69 ,  207 ,  357 ,  389 ,  24 ,  98 ,  7 , 1 818 , 26 377
